@@ -21,7 +21,7 @@ func TestModel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	if string(b) != `{"tmp":{"Temp1":"a"},"bar":{"Bar1":"b"},"buzz":{"Buzz1":"c"},"hoge":{"hoge1":"d"},"fuga":{"fuga1":"d"}}` {
+	if string(b) != `{"tmp":{"Temp1":"a"},"Bar1":"b","Buzz1":"c","hoge1":"d","fuga1":"d"}` {
 		t.Errorf("not expected: %s", string(b))
 	}
 }

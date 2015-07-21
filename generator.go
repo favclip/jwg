@@ -116,7 +116,9 @@ func (b *BuildSource) parseField(st *BuildStruct, typeInfo *genbase.TypeInfo, fi
 		field: field,
 	}
 	field.Tag = tag
-	if strings.IndexFunc(field.Name, func(r rune) bool { return unicode.IsLower(r) }) == -1 {
+	if field.Embed {
+		// do not emit tag name for embed struct in default behavior
+	} else if strings.IndexFunc(field.Name, func(r rune) bool { return unicode.IsLower(r) }) == -1 {
 		// lower char is not contains.
 		// convert to lower case.
 		// e.g. ID -> id

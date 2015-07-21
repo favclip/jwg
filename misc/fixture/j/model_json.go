@@ -9,10 +9,10 @@ import (
 // for Foo
 type FooJson struct {
 	Tmp       *Temp `json:"tmp,omitempty"`
-	Bar       `json:"bar,omitempty"`
-	*Buzz     `json:"buzz,omitempty"`
-	HogeJson  `json:"hoge,omitempty"`
-	*FugaJson `json:"fuga,omitempty"`
+	Bar       `json:",omitempty"`
+	*Buzz     `json:",omitempty"`
+	HogeJson  `json:",omitempty"`
+	*FugaJson `json:",omitempty"`
 }
 
 type FooJsonList []*FooJson
