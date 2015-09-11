@@ -8,3 +8,4 @@ go run cmd/jwg/main.go -type Sample,Inner -output misc/fixture/g/model_json.go m
 go run cmd/jwg/main.go -type Sample -output misc/fixture/h/model_json.go misc/fixture/h
 go run cmd/jwg/main.go -output misc/fixture/i/model_json.go misc/fixture/i
 go run cmd/jwg/main.go -output misc/fixture/j/model_json.go misc/fixture/j
+go run cmd/jwg/main.go -output misc/fixture/k/model_json.go misc/fixture/k
