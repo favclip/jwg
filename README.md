@@ -27,7 +27,7 @@ builder := NewUserJsonBuilder()
 builder.AddAll()
 builder.Remove(builder.EncryptedPassword)
 json, _ := builder.Marshal(user)
-// emit `{"name":"vvakame"}`
+// emit `{"name":"go-chan"}`
 fmt.Println(string(json))
 ```
 
