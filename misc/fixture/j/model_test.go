@@ -13,7 +13,7 @@ func TestModel(t *testing.T) {
 		Hoge: Hoge{"d"},
 		Fuga: &Fuga{"d"},
 	}
-	jsonObj, err := NewFooJsonBuilder().AddAll().Convert(obj)
+	jsonObj, err := NewFooJSONBuilder().AddAll().Convert(obj)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

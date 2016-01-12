@@ -6,41 +6,47 @@ import (
 	"encoding/json"
 )
 
-// for Inner
-type InnerJson struct {
+// InnerJSON is jsonized struct for Inner.
+type InnerJSON struct {
 	A string `json:"a,omitempty"`
 }
 
-type InnerJsonList []*InnerJson
+// InnerJSONList is synonym about []*InnerJSON.
+type InnerJSONList []*InnerJSON
 
-type InnerPropertyEncoder func(src *Inner, dest *InnerJson) error
+// InnerPropertyEncoder is property encoder for [1]sJSON.
+type InnerPropertyEncoder func(src *Inner, dest *InnerJSON) error
 
-type InnerPropertyDecoder func(src *InnerJson, dest *Inner) error
+// InnerPropertyDecoder is property decoder for [1]sJSON.
+type InnerPropertyDecoder func(src *InnerJSON, dest *Inner) error
 
+// InnerPropertyInfo stores property information.
 type InnerPropertyInfo struct {
 	name    string
 	Encoder InnerPropertyEncoder
 	Decoder InnerPropertyDecoder
 }
 
-type InnerJsonBuilder struct {
+// InnerJSONBuilder convert between Inner to InnerJSON mutually.
+type InnerJSONBuilder struct {
 	_properties map[string]*InnerPropertyInfo
 	A           *InnerPropertyInfo
 }
 
-func NewInnerJsonBuilder() *InnerJsonBuilder {
-	return &InnerJsonBuilder{
+// NewInnerJSONBuilder make new InnerJSONBuilder.
+func NewInnerJSONBuilder() *InnerJSONBuilder {
+	return &InnerJSONBuilder{
 		_properties: map[string]*InnerPropertyInfo{},
 		A: &InnerPropertyInfo{
 			name: "A",
-			Encoder: func(src *Inner, dest *InnerJson) error {
+			Encoder: func(src *Inner, dest *InnerJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.A = src.A
 				return nil
 			},
-			Decoder: func(src *InnerJson, dest *Inner) error {
+			Decoder: func(src *InnerJSON, dest *Inner) error {
 				if src == nil {
 					return nil
 				}
@@ -51,26 +57,30 @@ func NewInnerJsonBuilder() *InnerJsonBuilder {
 	}
 }
 
-func (b *InnerJsonBuilder) AddAll() *InnerJsonBuilder {
+// AddAll adds all property to InnerJSONBuilder.
+func (b *InnerJSONBuilder) AddAll() *InnerJSONBuilder {
 	b._properties["A"] = b.A
 	return b
 }
 
-func (b *InnerJsonBuilder) Add(info *InnerPropertyInfo) *InnerJsonBuilder {
+// Add specified property to InnerJSONBuilder.
+func (b *InnerJSONBuilder) Add(info *InnerPropertyInfo) *InnerJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *InnerJsonBuilder) Remove(info *InnerPropertyInfo) *InnerJsonBuilder {
+// Remove specified property to InnerJSONBuilder.
+func (b *InnerJSONBuilder) Remove(info *InnerPropertyInfo) *InnerJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *InnerJsonBuilder) Convert(orig *Inner) (*InnerJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *InnerJSONBuilder) Convert(orig *Inner) (*InnerJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &InnerJson{}
+	ret := &InnerJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -81,12 +91,13 @@ func (b *InnerJsonBuilder) Convert(orig *Inner) (*InnerJson, error) {
 	return ret, nil
 }
 
-func (b *InnerJsonBuilder) ConvertList(orig []*Inner) (InnerJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *InnerJSONBuilder) ConvertList(orig []*Inner) (InnerJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(InnerJsonList, len(orig))
+	list := make(InnerJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -98,10 +109,11 @@ func (b *InnerJsonBuilder) ConvertList(orig []*Inner) (InnerJsonList, error) {
 	return list, nil
 }
 
-func (orig *InnerJson) Convert() (*Inner, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *InnerJSON) Convert() (*Inner, error) {
 	ret := &Inner{}
 
-	b := NewInnerJsonBuilder().AddAll()
+	b := NewInnerJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -111,8 +123,9 @@ func (orig *InnerJson) Convert() (*Inner, error) {
 	return ret, nil
 }
 
-func (jsonList InnerJsonList) Convert() ([]*Inner, error) {
-	orig := ([]*InnerJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList InnerJSONList) Convert() ([]*Inner, error) {
+	orig := ([]*InnerJSON)(jsonList)
 
 	list := make([]*Inner, len(orig))
 	for idx, or := range orig {
@@ -126,7 +139,8 @@ func (jsonList InnerJsonList) Convert() ([]*Inner, error) {
 	return list, nil
 }
 
-func (b *InnerJsonBuilder) Marshal(orig *Inner) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *InnerJSONBuilder) Marshal(orig *Inner) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err
@@ -134,29 +148,34 @@ func (b *InnerJsonBuilder) Marshal(orig *Inner) ([]byte, error) {
 	return json.Marshal(ret)
 }
 
-// for Sample
-type SampleJson struct {
-	A1  InnerJson     `json:"a1,omitempty"`
-	A2  *InnerJson    `json:"a2,omitempty"`
-	As1 []InnerJson   `json:"as1,omitempty"`
-	As2 []*InnerJson  `json:"as2,omitempty"`
-	As3 *[]InnerJson  `json:"as3,omitempty"`
-	As4 *[]*InnerJson `json:"as4,omitempty"`
+// SampleJSON is jsonized struct for Sample.
+type SampleJSON struct {
+	A1  InnerJSON     `json:"a1,omitempty"`
+	A2  *InnerJSON    `json:"a2,omitempty"`
+	As1 []InnerJSON   `json:"as1,omitempty"`
+	As2 []*InnerJSON  `json:"as2,omitempty"`
+	As3 *[]InnerJSON  `json:"as3,omitempty"`
+	As4 *[]*InnerJSON `json:"as4,omitempty"`
 }
 
-type SampleJsonList []*SampleJson
+// SampleJSONList is synonym about []*SampleJSON.
+type SampleJSONList []*SampleJSON
 
-type SamplePropertyEncoder func(src *Sample, dest *SampleJson) error
+// SamplePropertyEncoder is property encoder for [1]sJSON.
+type SamplePropertyEncoder func(src *Sample, dest *SampleJSON) error
 
-type SamplePropertyDecoder func(src *SampleJson, dest *Sample) error
+// SamplePropertyDecoder is property decoder for [1]sJSON.
+type SamplePropertyDecoder func(src *SampleJSON, dest *Sample) error
 
+// SamplePropertyInfo stores property information.
 type SamplePropertyInfo struct {
 	name    string
 	Encoder SamplePropertyEncoder
 	Decoder SamplePropertyDecoder
 }
 
-type SampleJsonBuilder struct {
+// SampleJSONBuilder convert between Sample to SampleJSON mutually.
+type SampleJSONBuilder struct {
 	_properties map[string]*SamplePropertyInfo
 	A1          *SamplePropertyInfo
 	A2          *SamplePropertyInfo
@@ -166,23 +185,24 @@ type SampleJsonBuilder struct {
 	As4         *SamplePropertyInfo
 }
 
-func NewSampleJsonBuilder() *SampleJsonBuilder {
-	return &SampleJsonBuilder{
+// NewSampleJSONBuilder make new SampleJSONBuilder.
+func NewSampleJSONBuilder() *SampleJSONBuilder {
+	return &SampleJSONBuilder{
 		_properties: map[string]*SamplePropertyInfo{},
 		A1: &SamplePropertyInfo{
 			name: "A1",
-			Encoder: func(src *Sample, dest *SampleJson) error {
+			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
 				}
-				d, err := NewInnerJsonBuilder().AddAll().Convert(&src.A1)
+				d, err := NewInnerJSONBuilder().AddAll().Convert(&src.A1)
 				if err != nil {
 					return err
 				}
 				dest.A1 = *d
 				return nil
 			},
-			Decoder: func(src *SampleJson, dest *Sample) error {
+			Decoder: func(src *SampleJSON, dest *Sample) error {
 				if src == nil {
 					return nil
 				}
@@ -196,20 +216,20 @@ func NewSampleJsonBuilder() *SampleJsonBuilder {
 		},
 		A2: &SamplePropertyInfo{
 			name: "A2",
-			Encoder: func(src *Sample, dest *SampleJson) error {
+			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
 				} else if src.A2 == nil {
 					return nil
 				}
-				d, err := NewInnerJsonBuilder().AddAll().Convert(src.A2)
+				d, err := NewInnerJSONBuilder().AddAll().Convert(src.A2)
 				if err != nil {
 					return err
 				}
 				dest.A2 = d
 				return nil
 			},
-			Decoder: func(src *SampleJson, dest *Sample) error {
+			Decoder: func(src *SampleJSON, dest *Sample) error {
 				if src == nil {
 					return nil
 				} else if src.A2 == nil {
@@ -225,12 +245,12 @@ func NewSampleJsonBuilder() *SampleJsonBuilder {
 		},
 		As1: &SamplePropertyInfo{
 			name: "As1",
-			Encoder: func(src *Sample, dest *SampleJson) error {
+			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
 				}
-				b := NewInnerJsonBuilder().AddAll()
-				list := make([]InnerJson, len(src.As1))
+				b := NewInnerJSONBuilder().AddAll()
+				list := make([]InnerJSON, len(src.As1))
 				for idx, obj := range src.As1 {
 					d, err := b.Convert(&obj)
 					if err != nil {
@@ -241,7 +261,7 @@ func NewSampleJsonBuilder() *SampleJsonBuilder {
 				dest.As1 = list
 				return nil
 			},
-			Decoder: func(src *SampleJson, dest *Sample) error {
+			Decoder: func(src *SampleJSON, dest *Sample) error {
 				if src == nil {
 					return nil
 				}
@@ -259,18 +279,18 @@ func NewSampleJsonBuilder() *SampleJsonBuilder {
 		},
 		As2: &SamplePropertyInfo{
 			name: "As2",
-			Encoder: func(src *Sample, dest *SampleJson) error {
+			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
 				}
-				list, err := NewInnerJsonBuilder().AddAll().ConvertList(src.As2)
+				list, err := NewInnerJSONBuilder().AddAll().ConvertList(src.As2)
 				if err != nil {
 					return err
 				}
-				dest.As2 = ([]*InnerJson)(list)
+				dest.As2 = ([]*InnerJSON)(list)
 				return nil
 			},
-			Decoder: func(src *SampleJson, dest *Sample) error {
+			Decoder: func(src *SampleJSON, dest *Sample) error {
 				if src == nil {
 					return nil
 				}
@@ -291,14 +311,14 @@ func NewSampleJsonBuilder() *SampleJsonBuilder {
 		},
 		As3: &SamplePropertyInfo{
 			name: "As3",
-			Encoder: func(src *Sample, dest *SampleJson) error {
+			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
 				} else if src.As3 == nil {
 					return nil
 				}
-				b := NewInnerJsonBuilder().AddAll()
-				list := make([]InnerJson, len(*src.As3))
+				b := NewInnerJSONBuilder().AddAll()
+				list := make([]InnerJSON, len(*src.As3))
 				for idx, obj := range *src.As3 {
 					d, err := b.Convert(&obj)
 					if err != nil {
@@ -309,7 +329,7 @@ func NewSampleJsonBuilder() *SampleJsonBuilder {
 				dest.As3 = &list
 				return nil
 			},
-			Decoder: func(src *SampleJson, dest *Sample) error {
+			Decoder: func(src *SampleJSON, dest *Sample) error {
 				if src == nil {
 					return nil
 				} else if src.As3 == nil {
@@ -329,20 +349,20 @@ func NewSampleJsonBuilder() *SampleJsonBuilder {
 		},
 		As4: &SamplePropertyInfo{
 			name: "As4",
-			Encoder: func(src *Sample, dest *SampleJson) error {
+			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
 				} else if src.As4 == nil {
 					return nil
 				}
-				list, err := NewInnerJsonBuilder().AddAll().ConvertList(*src.As4)
+				list, err := NewInnerJSONBuilder().AddAll().ConvertList(*src.As4)
 				if err != nil {
 					return err
 				}
-				dest.As4 = (*[]*InnerJson)(&list)
+				dest.As4 = (*[]*InnerJSON)(&list)
 				return nil
 			},
-			Decoder: func(src *SampleJson, dest *Sample) error {
+			Decoder: func(src *SampleJSON, dest *Sample) error {
 				if src == nil {
 					return nil
 				} else if src.As4 == nil {
@@ -366,7 +386,8 @@ func NewSampleJsonBuilder() *SampleJsonBuilder {
 	}
 }
 
-func (b *SampleJsonBuilder) AddAll() *SampleJsonBuilder {
+// AddAll adds all property to SampleJSONBuilder.
+func (b *SampleJSONBuilder) AddAll() *SampleJSONBuilder {
 	b._properties["A1"] = b.A1
 	b._properties["A2"] = b.A2
 	b._properties["As1"] = b.As1
@@ -376,21 +397,24 @@ func (b *SampleJsonBuilder) AddAll() *SampleJsonBuilder {
 	return b
 }
 
-func (b *SampleJsonBuilder) Add(info *SamplePropertyInfo) *SampleJsonBuilder {
+// Add specified property to SampleJSONBuilder.
+func (b *SampleJSONBuilder) Add(info *SamplePropertyInfo) *SampleJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *SampleJsonBuilder) Remove(info *SamplePropertyInfo) *SampleJsonBuilder {
+// Remove specified property to SampleJSONBuilder.
+func (b *SampleJSONBuilder) Remove(info *SamplePropertyInfo) *SampleJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *SampleJsonBuilder) Convert(orig *Sample) (*SampleJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *SampleJSONBuilder) Convert(orig *Sample) (*SampleJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &SampleJson{}
+	ret := &SampleJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -401,12 +425,13 @@ func (b *SampleJsonBuilder) Convert(orig *Sample) (*SampleJson, error) {
 	return ret, nil
 }
 
-func (b *SampleJsonBuilder) ConvertList(orig []*Sample) (SampleJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *SampleJSONBuilder) ConvertList(orig []*Sample) (SampleJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(SampleJsonList, len(orig))
+	list := make(SampleJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -418,10 +443,11 @@ func (b *SampleJsonBuilder) ConvertList(orig []*Sample) (SampleJsonList, error) 
 	return list, nil
 }
 
-func (orig *SampleJson) Convert() (*Sample, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *SampleJSON) Convert() (*Sample, error) {
 	ret := &Sample{}
 
-	b := NewSampleJsonBuilder().AddAll()
+	b := NewSampleJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -431,8 +457,9 @@ func (orig *SampleJson) Convert() (*Sample, error) {
 	return ret, nil
 }
 
-func (jsonList SampleJsonList) Convert() ([]*Sample, error) {
-	orig := ([]*SampleJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList SampleJSONList) Convert() ([]*Sample, error) {
+	orig := ([]*SampleJSON)(jsonList)
 
 	list := make([]*Sample, len(orig))
 	for idx, or := range orig {
@@ -446,7 +473,8 @@ func (jsonList SampleJsonList) Convert() ([]*Sample, error) {
 	return list, nil
 }
 
-func (b *SampleJsonBuilder) Marshal(orig *Sample) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *SampleJSONBuilder) Marshal(orig *Sample) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err

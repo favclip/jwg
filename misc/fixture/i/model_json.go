@@ -6,45 +6,51 @@ import (
 	"encoding/json"
 )
 
-// for Person
-type PersonJson struct {
+// PersonJSON is jsonized struct for Person.
+type PersonJSON struct {
 	Name     string `json:"name,omitempty"`
 	Age      int    `json:"age,omitempty"`
 	Password string `json:"password,omitempty"`
 }
 
-type PersonJsonList []*PersonJson
+// PersonJSONList is synonym about []*PersonJSON.
+type PersonJSONList []*PersonJSON
 
-type PersonPropertyEncoder func(src *Person, dest *PersonJson) error
+// PersonPropertyEncoder is property encoder for [1]sJSON.
+type PersonPropertyEncoder func(src *Person, dest *PersonJSON) error
 
-type PersonPropertyDecoder func(src *PersonJson, dest *Person) error
+// PersonPropertyDecoder is property decoder for [1]sJSON.
+type PersonPropertyDecoder func(src *PersonJSON, dest *Person) error
 
+// PersonPropertyInfo stores property information.
 type PersonPropertyInfo struct {
 	name    string
 	Encoder PersonPropertyEncoder
 	Decoder PersonPropertyDecoder
 }
 
-type PersonJsonBuilder struct {
+// PersonJSONBuilder convert between Person to PersonJSON mutually.
+type PersonJSONBuilder struct {
 	_properties map[string]*PersonPropertyInfo
 	Name        *PersonPropertyInfo
 	Age         *PersonPropertyInfo
 	Password    *PersonPropertyInfo
 }
 
-func NewPersonJsonBuilder() *PersonJsonBuilder {
-	return &PersonJsonBuilder{
+// NewPersonJSONBuilder make new PersonJSONBuilder.
+func NewPersonJSONBuilder() *PersonJSONBuilder {
+	return &PersonJSONBuilder{
 		_properties: map[string]*PersonPropertyInfo{},
 		Name: &PersonPropertyInfo{
 			name: "Name",
-			Encoder: func(src *Person, dest *PersonJson) error {
+			Encoder: func(src *Person, dest *PersonJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Name = src.Name
 				return nil
 			},
-			Decoder: func(src *PersonJson, dest *Person) error {
+			Decoder: func(src *PersonJSON, dest *Person) error {
 				if src == nil {
 					return nil
 				}
@@ -54,14 +60,14 @@ func NewPersonJsonBuilder() *PersonJsonBuilder {
 		},
 		Age: &PersonPropertyInfo{
 			name: "Age",
-			Encoder: func(src *Person, dest *PersonJson) error {
+			Encoder: func(src *Person, dest *PersonJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Age = src.Age
 				return nil
 			},
-			Decoder: func(src *PersonJson, dest *Person) error {
+			Decoder: func(src *PersonJSON, dest *Person) error {
 				if src == nil {
 					return nil
 				}
@@ -71,14 +77,14 @@ func NewPersonJsonBuilder() *PersonJsonBuilder {
 		},
 		Password: &PersonPropertyInfo{
 			name: "Password",
-			Encoder: func(src *Person, dest *PersonJson) error {
+			Encoder: func(src *Person, dest *PersonJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Password = src.Password
 				return nil
 			},
-			Decoder: func(src *PersonJson, dest *Person) error {
+			Decoder: func(src *PersonJSON, dest *Person) error {
 				if src == nil {
 					return nil
 				}
@@ -89,28 +95,32 @@ func NewPersonJsonBuilder() *PersonJsonBuilder {
 	}
 }
 
-func (b *PersonJsonBuilder) AddAll() *PersonJsonBuilder {
+// AddAll adds all property to PersonJSONBuilder.
+func (b *PersonJSONBuilder) AddAll() *PersonJSONBuilder {
 	b._properties["Name"] = b.Name
 	b._properties["Age"] = b.Age
 	b._properties["Password"] = b.Password
 	return b
 }
 
-func (b *PersonJsonBuilder) Add(info *PersonPropertyInfo) *PersonJsonBuilder {
+// Add specified property to PersonJSONBuilder.
+func (b *PersonJSONBuilder) Add(info *PersonPropertyInfo) *PersonJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *PersonJsonBuilder) Remove(info *PersonPropertyInfo) *PersonJsonBuilder {
+// Remove specified property to PersonJSONBuilder.
+func (b *PersonJSONBuilder) Remove(info *PersonPropertyInfo) *PersonJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *PersonJsonBuilder) Convert(orig *Person) (*PersonJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *PersonJSONBuilder) Convert(orig *Person) (*PersonJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &PersonJson{}
+	ret := &PersonJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -121,12 +131,13 @@ func (b *PersonJsonBuilder) Convert(orig *Person) (*PersonJson, error) {
 	return ret, nil
 }
 
-func (b *PersonJsonBuilder) ConvertList(orig []*Person) (PersonJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *PersonJSONBuilder) ConvertList(orig []*Person) (PersonJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(PersonJsonList, len(orig))
+	list := make(PersonJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -138,10 +149,11 @@ func (b *PersonJsonBuilder) ConvertList(orig []*Person) (PersonJsonList, error) 
 	return list, nil
 }
 
-func (orig *PersonJson) Convert() (*Person, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *PersonJSON) Convert() (*Person, error) {
 	ret := &Person{}
 
-	b := NewPersonJsonBuilder().AddAll()
+	b := NewPersonJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -151,8 +163,9 @@ func (orig *PersonJson) Convert() (*Person, error) {
 	return ret, nil
 }
 
-func (jsonList PersonJsonList) Convert() ([]*Person, error) {
-	orig := ([]*PersonJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList PersonJSONList) Convert() ([]*Person, error) {
+	orig := ([]*PersonJSON)(jsonList)
 
 	list := make([]*Person, len(orig))
 	for idx, or := range orig {
@@ -166,7 +179,8 @@ func (jsonList PersonJsonList) Convert() ([]*Person, error) {
 	return list, nil
 }
 
-func (b *PersonJsonBuilder) Marshal(orig *Person) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *PersonJSONBuilder) Marshal(orig *Person) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err
@@ -174,43 +188,49 @@ func (b *PersonJsonBuilder) Marshal(orig *Person) ([]byte, error) {
 	return json.Marshal(ret)
 }
 
-// for People
-type PeopleJson struct {
+// PeopleJSON is jsonized struct for People.
+type PeopleJSON struct {
 	ShowPrivateInfo bool          `json:"showPrivateInfo,omitempty"`
-	List            []*PersonJson `json:"list,omitempty"`
+	List            []*PersonJSON `json:"list,omitempty"`
 }
 
-type PeopleJsonList []*PeopleJson
+// PeopleJSONList is synonym about []*PeopleJSON.
+type PeopleJSONList []*PeopleJSON
 
-type PeoplePropertyEncoder func(src *People, dest *PeopleJson) error
+// PeoplePropertyEncoder is property encoder for [1]sJSON.
+type PeoplePropertyEncoder func(src *People, dest *PeopleJSON) error
 
-type PeoplePropertyDecoder func(src *PeopleJson, dest *People) error
+// PeoplePropertyDecoder is property decoder for [1]sJSON.
+type PeoplePropertyDecoder func(src *PeopleJSON, dest *People) error
 
+// PeoplePropertyInfo stores property information.
 type PeoplePropertyInfo struct {
 	name    string
 	Encoder PeoplePropertyEncoder
 	Decoder PeoplePropertyDecoder
 }
 
-type PeopleJsonBuilder struct {
+// PeopleJSONBuilder convert between People to PeopleJSON mutually.
+type PeopleJSONBuilder struct {
 	_properties     map[string]*PeoplePropertyInfo
 	ShowPrivateInfo *PeoplePropertyInfo
 	List            *PeoplePropertyInfo
 }
 
-func NewPeopleJsonBuilder() *PeopleJsonBuilder {
-	return &PeopleJsonBuilder{
+// NewPeopleJSONBuilder make new PeopleJSONBuilder.
+func NewPeopleJSONBuilder() *PeopleJSONBuilder {
+	return &PeopleJSONBuilder{
 		_properties: map[string]*PeoplePropertyInfo{},
 		ShowPrivateInfo: &PeoplePropertyInfo{
 			name: "ShowPrivateInfo",
-			Encoder: func(src *People, dest *PeopleJson) error {
+			Encoder: func(src *People, dest *PeopleJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.ShowPrivateInfo = src.ShowPrivateInfo
 				return nil
 			},
-			Decoder: func(src *PeopleJson, dest *People) error {
+			Decoder: func(src *PeopleJSON, dest *People) error {
 				if src == nil {
 					return nil
 				}
@@ -220,18 +240,18 @@ func NewPeopleJsonBuilder() *PeopleJsonBuilder {
 		},
 		List: &PeoplePropertyInfo{
 			name: "List",
-			Encoder: func(src *People, dest *PeopleJson) error {
+			Encoder: func(src *People, dest *PeopleJSON) error {
 				if src == nil {
 					return nil
 				}
-				list, err := NewPersonJsonBuilder().AddAll().ConvertList(src.List)
+				list, err := NewPersonJSONBuilder().AddAll().ConvertList(src.List)
 				if err != nil {
 					return err
 				}
-				dest.List = ([]*PersonJson)(list)
+				dest.List = ([]*PersonJSON)(list)
 				return nil
 			},
-			Decoder: func(src *PeopleJson, dest *People) error {
+			Decoder: func(src *PeopleJSON, dest *People) error {
 				if src == nil {
 					return nil
 				}
@@ -253,27 +273,31 @@ func NewPeopleJsonBuilder() *PeopleJsonBuilder {
 	}
 }
 
-func (b *PeopleJsonBuilder) AddAll() *PeopleJsonBuilder {
+// AddAll adds all property to PeopleJSONBuilder.
+func (b *PeopleJSONBuilder) AddAll() *PeopleJSONBuilder {
 	b._properties["ShowPrivateInfo"] = b.ShowPrivateInfo
 	b._properties["List"] = b.List
 	return b
 }
 
-func (b *PeopleJsonBuilder) Add(info *PeoplePropertyInfo) *PeopleJsonBuilder {
+// Add specified property to PeopleJSONBuilder.
+func (b *PeopleJSONBuilder) Add(info *PeoplePropertyInfo) *PeopleJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *PeopleJsonBuilder) Remove(info *PeoplePropertyInfo) *PeopleJsonBuilder {
+// Remove specified property to PeopleJSONBuilder.
+func (b *PeopleJSONBuilder) Remove(info *PeoplePropertyInfo) *PeopleJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *PeopleJsonBuilder) Convert(orig *People) (*PeopleJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *PeopleJSONBuilder) Convert(orig *People) (*PeopleJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &PeopleJson{}
+	ret := &PeopleJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -284,12 +308,13 @@ func (b *PeopleJsonBuilder) Convert(orig *People) (*PeopleJson, error) {
 	return ret, nil
 }
 
-func (b *PeopleJsonBuilder) ConvertList(orig []*People) (PeopleJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *PeopleJSONBuilder) ConvertList(orig []*People) (PeopleJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(PeopleJsonList, len(orig))
+	list := make(PeopleJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -301,10 +326,11 @@ func (b *PeopleJsonBuilder) ConvertList(orig []*People) (PeopleJsonList, error) 
 	return list, nil
 }
 
-func (orig *PeopleJson) Convert() (*People, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *PeopleJSON) Convert() (*People, error) {
 	ret := &People{}
 
-	b := NewPeopleJsonBuilder().AddAll()
+	b := NewPeopleJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -314,8 +340,9 @@ func (orig *PeopleJson) Convert() (*People, error) {
 	return ret, nil
 }
 
-func (jsonList PeopleJsonList) Convert() ([]*People, error) {
-	orig := ([]*PeopleJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList PeopleJSONList) Convert() ([]*People, error) {
+	orig := ([]*PeopleJSON)(jsonList)
 
 	list := make([]*People, len(orig))
 	for idx, or := range orig {
@@ -329,7 +356,8 @@ func (jsonList PeopleJsonList) Convert() ([]*People, error) {
 	return list, nil
 }
 
-func (b *PeopleJsonBuilder) Marshal(orig *People) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *PeopleJSONBuilder) Marshal(orig *People) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err

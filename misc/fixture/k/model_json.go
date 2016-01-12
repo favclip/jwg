@@ -4,45 +4,52 @@ package k
 
 import (
 	"encoding/json"
+
 	o1 "github.com/favclip/jwg/misc/other/v1"
 	o2 "github.com/favclip/jwg/misc/other/v2"
 )
 
-// for Foo
-type FooJson struct {
+// FooJSON is jsonized struct for Foo.
+type FooJSON struct {
 	Test *o1.Test `json:"test,omitempty"`
 }
 
-type FooJsonList []*FooJson
+// FooJSONList is synonym about []*FooJSON.
+type FooJSONList []*FooJSON
 
-type FooPropertyEncoder func(src *Foo, dest *FooJson) error
+// FooPropertyEncoder is property encoder for [1]sJSON.
+type FooPropertyEncoder func(src *Foo, dest *FooJSON) error
 
-type FooPropertyDecoder func(src *FooJson, dest *Foo) error
+// FooPropertyDecoder is property decoder for [1]sJSON.
+type FooPropertyDecoder func(src *FooJSON, dest *Foo) error
 
+// FooPropertyInfo stores property information.
 type FooPropertyInfo struct {
 	name    string
 	Encoder FooPropertyEncoder
 	Decoder FooPropertyDecoder
 }
 
-type FooJsonBuilder struct {
+// FooJSONBuilder convert between Foo to FooJSON mutually.
+type FooJSONBuilder struct {
 	_properties map[string]*FooPropertyInfo
 	Test        *FooPropertyInfo
 }
 
-func NewFooJsonBuilder() *FooJsonBuilder {
-	return &FooJsonBuilder{
+// NewFooJSONBuilder make new FooJSONBuilder.
+func NewFooJSONBuilder() *FooJSONBuilder {
+	return &FooJSONBuilder{
 		_properties: map[string]*FooPropertyInfo{},
 		Test: &FooPropertyInfo{
 			name: "Test",
-			Encoder: func(src *Foo, dest *FooJson) error {
+			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Test = src.Test
 				return nil
 			},
-			Decoder: func(src *FooJson, dest *Foo) error {
+			Decoder: func(src *FooJSON, dest *Foo) error {
 				if src == nil {
 					return nil
 				}
@@ -53,26 +60,30 @@ func NewFooJsonBuilder() *FooJsonBuilder {
 	}
 }
 
-func (b *FooJsonBuilder) AddAll() *FooJsonBuilder {
+// AddAll adds all property to FooJSONBuilder.
+func (b *FooJSONBuilder) AddAll() *FooJSONBuilder {
 	b._properties["Test"] = b.Test
 	return b
 }
 
-func (b *FooJsonBuilder) Add(info *FooPropertyInfo) *FooJsonBuilder {
+// Add specified property to FooJSONBuilder.
+func (b *FooJSONBuilder) Add(info *FooPropertyInfo) *FooJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *FooJsonBuilder) Remove(info *FooPropertyInfo) *FooJsonBuilder {
+// Remove specified property to FooJSONBuilder.
+func (b *FooJSONBuilder) Remove(info *FooPropertyInfo) *FooJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *FooJsonBuilder) Convert(orig *Foo) (*FooJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *FooJSONBuilder) Convert(orig *Foo) (*FooJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &FooJson{}
+	ret := &FooJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -83,12 +94,13 @@ func (b *FooJsonBuilder) Convert(orig *Foo) (*FooJson, error) {
 	return ret, nil
 }
 
-func (b *FooJsonBuilder) ConvertList(orig []*Foo) (FooJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *FooJSONBuilder) ConvertList(orig []*Foo) (FooJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(FooJsonList, len(orig))
+	list := make(FooJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -100,10 +112,11 @@ func (b *FooJsonBuilder) ConvertList(orig []*Foo) (FooJsonList, error) {
 	return list, nil
 }
 
-func (orig *FooJson) Convert() (*Foo, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *FooJSON) Convert() (*Foo, error) {
 	ret := &Foo{}
 
-	b := NewFooJsonBuilder().AddAll()
+	b := NewFooJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -113,8 +126,9 @@ func (orig *FooJson) Convert() (*Foo, error) {
 	return ret, nil
 }
 
-func (jsonList FooJsonList) Convert() ([]*Foo, error) {
-	orig := ([]*FooJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList FooJSONList) Convert() ([]*Foo, error) {
+	orig := ([]*FooJSON)(jsonList)
 
 	list := make([]*Foo, len(orig))
 	for idx, or := range orig {
@@ -128,7 +142,8 @@ func (jsonList FooJsonList) Convert() ([]*Foo, error) {
 	return list, nil
 }
 
-func (b *FooJsonBuilder) Marshal(orig *Foo) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *FooJSONBuilder) Marshal(orig *Foo) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err
@@ -136,41 +151,47 @@ func (b *FooJsonBuilder) Marshal(orig *Foo) ([]byte, error) {
 	return json.Marshal(ret)
 }
 
-// for Bar
-type BarJson struct {
+// BarJSON is jsonized struct for Bar.
+type BarJSON struct {
 	Tests []*o2.Test `json:"tests,omitempty"`
 }
 
-type BarJsonList []*BarJson
+// BarJSONList is synonym about []*BarJSON.
+type BarJSONList []*BarJSON
 
-type BarPropertyEncoder func(src *Bar, dest *BarJson) error
+// BarPropertyEncoder is property encoder for [1]sJSON.
+type BarPropertyEncoder func(src *Bar, dest *BarJSON) error
 
-type BarPropertyDecoder func(src *BarJson, dest *Bar) error
+// BarPropertyDecoder is property decoder for [1]sJSON.
+type BarPropertyDecoder func(src *BarJSON, dest *Bar) error
 
+// BarPropertyInfo stores property information.
 type BarPropertyInfo struct {
 	name    string
 	Encoder BarPropertyEncoder
 	Decoder BarPropertyDecoder
 }
 
-type BarJsonBuilder struct {
+// BarJSONBuilder convert between Bar to BarJSON mutually.
+type BarJSONBuilder struct {
 	_properties map[string]*BarPropertyInfo
 	Tests       *BarPropertyInfo
 }
 
-func NewBarJsonBuilder() *BarJsonBuilder {
-	return &BarJsonBuilder{
+// NewBarJSONBuilder make new BarJSONBuilder.
+func NewBarJSONBuilder() *BarJSONBuilder {
+	return &BarJSONBuilder{
 		_properties: map[string]*BarPropertyInfo{},
 		Tests: &BarPropertyInfo{
 			name: "Tests",
-			Encoder: func(src *Bar, dest *BarJson) error {
+			Encoder: func(src *Bar, dest *BarJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Tests = src.Tests
 				return nil
 			},
-			Decoder: func(src *BarJson, dest *Bar) error {
+			Decoder: func(src *BarJSON, dest *Bar) error {
 				if src == nil {
 					return nil
 				}
@@ -181,26 +202,30 @@ func NewBarJsonBuilder() *BarJsonBuilder {
 	}
 }
 
-func (b *BarJsonBuilder) AddAll() *BarJsonBuilder {
+// AddAll adds all property to BarJSONBuilder.
+func (b *BarJSONBuilder) AddAll() *BarJSONBuilder {
 	b._properties["Tests"] = b.Tests
 	return b
 }
 
-func (b *BarJsonBuilder) Add(info *BarPropertyInfo) *BarJsonBuilder {
+// Add specified property to BarJSONBuilder.
+func (b *BarJSONBuilder) Add(info *BarPropertyInfo) *BarJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *BarJsonBuilder) Remove(info *BarPropertyInfo) *BarJsonBuilder {
+// Remove specified property to BarJSONBuilder.
+func (b *BarJSONBuilder) Remove(info *BarPropertyInfo) *BarJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *BarJsonBuilder) Convert(orig *Bar) (*BarJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *BarJSONBuilder) Convert(orig *Bar) (*BarJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &BarJson{}
+	ret := &BarJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -211,12 +236,13 @@ func (b *BarJsonBuilder) Convert(orig *Bar) (*BarJson, error) {
 	return ret, nil
 }
 
-func (b *BarJsonBuilder) ConvertList(orig []*Bar) (BarJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *BarJSONBuilder) ConvertList(orig []*Bar) (BarJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(BarJsonList, len(orig))
+	list := make(BarJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -228,10 +254,11 @@ func (b *BarJsonBuilder) ConvertList(orig []*Bar) (BarJsonList, error) {
 	return list, nil
 }
 
-func (orig *BarJson) Convert() (*Bar, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *BarJSON) Convert() (*Bar, error) {
 	ret := &Bar{}
 
-	b := NewBarJsonBuilder().AddAll()
+	b := NewBarJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -241,8 +268,9 @@ func (orig *BarJson) Convert() (*Bar, error) {
 	return ret, nil
 }
 
-func (jsonList BarJsonList) Convert() ([]*Bar, error) {
-	orig := ([]*BarJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList BarJSONList) Convert() ([]*Bar, error) {
+	orig := ([]*BarJSON)(jsonList)
 
 	list := make([]*Bar, len(orig))
 	for idx, or := range orig {
@@ -256,7 +284,8 @@ func (jsonList BarJsonList) Convert() ([]*Bar, error) {
 	return list, nil
 }
 
-func (b *BarJsonBuilder) Marshal(orig *Bar) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *BarJSONBuilder) Marshal(orig *Bar) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err
