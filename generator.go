@@ -2,10 +2,11 @@ package jwg
 
 import (
 	"fmt"
-	"github.com/favclip/genbase"
 	"reflect"
 	"strings"
 	"unicode"
+
+	"github.com/favclip/genbase"
 )
 
 // BuildStruct represents source code of assembling..
@@ -113,7 +114,8 @@ func (b *BuildSource) parseField(st *BuildStruct, typeInfo *genbase.TypeInfo, fi
 	st.Fields = append(st.Fields, field)
 
 	tag := &BuildTag{
-		field: field,
+		field:  field,
+		String: fieldInfo.IsInt64(),
 	}
 	field.Tag = tag
 	if field.Embed {

@@ -4,6 +4,7 @@ package f
 
 import (
 	"encoding/json"
+
 	"github.com/favclip/jwg/misc/fixture/a"
 	bravo "github.com/favclip/jwg/misc/fixture/b"
 )

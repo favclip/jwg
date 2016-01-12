@@ -13,6 +13,7 @@ import (
 
 	"github.com/favclip/genbase"
 	"github.com/favclip/jwg"
+	_ "golang.org/x/tools/go/gcimporter"
 )
 
 var (

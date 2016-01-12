@@ -1,9 +1,12 @@
 package jwg
 
 import (
-	"github.com/favclip/genbase"
 	"io/ioutil"
 	"testing"
+
+	"github.com/favclip/genbase"
+
+	_ "golang.org/x/tools/go/gcimporter"
 )
 
 func TestGeneratorParsePackageDir(t *testing.T) {
