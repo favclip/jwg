@@ -133,7 +133,11 @@ func TestReplacePropertyBuilder2(t *testing.T) {
 		return nil
 	}
 
-	people := &i.People{ShowPrivateInfo: false, List: []*i.Person{&i.Person{"vvakame", 30, "pw"}}}
+	people := &i.People{ShowPrivateInfo: false, List: []*i.Person{&i.Person{
+		Name:     "vvakame",
+		Age:      30,
+		Password: "pw",
+	}}}
 	json, err := builder.Convert(people)
 	if err != nil {
 		t.Log(err)
