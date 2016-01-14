@@ -8,11 +8,12 @@ import (
 
 // SampleJSON is jsonized struct for Sample.
 type SampleJSON struct {
-	A string `json:"foo!,omitempty"`
-	B string `json:"b,omitempty"`
-	C int    `json:"c,omitempty,string"`
-	D int    `json:"d,omitempty,string"`
-	F int64  `json:"f,omitempty,string"`
+	A string  `json:"foo!,omitempty"`
+	B string  `json:"b,omitempty"`
+	C int     `json:"c,omitempty,string"`
+	D int     `json:"d,omitempty,string"`
+	F int64   `json:"f,omitempty,string"`
+	G []int64 `json:"g,omitempty"`
 }
 
 // SampleJSONList is synonym about []*SampleJSON.
@@ -39,6 +40,7 @@ type SampleJSONBuilder struct {
 	C           *SamplePropertyInfo
 	D           *SamplePropertyInfo
 	F           *SamplePropertyInfo
+	G           *SamplePropertyInfo
 }
 
 // NewSampleJSONBuilder make new SampleJSONBuilder.
@@ -115,18 +117,35 @@ func NewSampleJSONBuilder() *SampleJSONBuilder {
 		},
 		F: &SamplePropertyInfo{
 			name: "F",
-			Encoder: func(src *Sample, dest *SampleJson) error {
+			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.F = src.F
 				return nil
 			},
-			Decoder: func(src *SampleJson, dest *Sample) error {
+			Decoder: func(src *SampleJSON, dest *Sample) error {
 				if src == nil {
 					return nil
 				}
 				dest.F = src.F
+				return nil
+			},
+		},
+		G: &SamplePropertyInfo{
+			name: "G",
+			Encoder: func(src *Sample, dest *SampleJSON) error {
+				if src == nil {
+					return nil
+				}
+				dest.G = src.G
+				return nil
+			},
+			Decoder: func(src *SampleJSON, dest *Sample) error {
+				if src == nil {
+					return nil
+				}
+				dest.G = src.G
 				return nil
 			},
 		},
@@ -140,6 +159,7 @@ func (b *SampleJSONBuilder) AddAll() *SampleJSONBuilder {
 	b._properties["C"] = b.C
 	b._properties["D"] = b.D
 	b._properties["F"] = b.F
+	b._properties["G"] = b.G
 	return b
 }
 
