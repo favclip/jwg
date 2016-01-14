@@ -4,47 +4,54 @@ package f
 
 import (
 	"encoding/json"
+
 	"github.com/favclip/jwg/misc/fixture/a"
 	bravo "github.com/favclip/jwg/misc/fixture/b"
 )
 
-// for SampleF
-type SampleFJson struct {
+// SampleFJSON is jsonized struct for SampleF.
+type SampleFJSON struct {
 	A *a.Sample     `json:"a,omitempty"`
 	B *bravo.Sample `json:"b,omitempty"`
 }
 
-type SampleFJsonList []*SampleFJson
+// SampleFJSONList is synonym about []*SampleFJSON.
+type SampleFJSONList []*SampleFJSON
 
-type SampleFPropertyEncoder func(src *SampleF, dest *SampleFJson) error
+// SampleFPropertyEncoder is property encoder for [1]sJSON.
+type SampleFPropertyEncoder func(src *SampleF, dest *SampleFJSON) error
 
-type SampleFPropertyDecoder func(src *SampleFJson, dest *SampleF) error
+// SampleFPropertyDecoder is property decoder for [1]sJSON.
+type SampleFPropertyDecoder func(src *SampleFJSON, dest *SampleF) error
 
+// SampleFPropertyInfo stores property information.
 type SampleFPropertyInfo struct {
 	name    string
 	Encoder SampleFPropertyEncoder
 	Decoder SampleFPropertyDecoder
 }
 
-type SampleFJsonBuilder struct {
+// SampleFJSONBuilder convert between SampleF to SampleFJSON mutually.
+type SampleFJSONBuilder struct {
 	_properties map[string]*SampleFPropertyInfo
 	A           *SampleFPropertyInfo
 	B           *SampleFPropertyInfo
 }
 
-func NewSampleFJsonBuilder() *SampleFJsonBuilder {
-	return &SampleFJsonBuilder{
+// NewSampleFJSONBuilder make new SampleFJSONBuilder.
+func NewSampleFJSONBuilder() *SampleFJSONBuilder {
+	return &SampleFJSONBuilder{
 		_properties: map[string]*SampleFPropertyInfo{},
 		A: &SampleFPropertyInfo{
 			name: "A",
-			Encoder: func(src *SampleF, dest *SampleFJson) error {
+			Encoder: func(src *SampleF, dest *SampleFJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.A = src.A
 				return nil
 			},
-			Decoder: func(src *SampleFJson, dest *SampleF) error {
+			Decoder: func(src *SampleFJSON, dest *SampleF) error {
 				if src == nil {
 					return nil
 				}
@@ -54,14 +61,14 @@ func NewSampleFJsonBuilder() *SampleFJsonBuilder {
 		},
 		B: &SampleFPropertyInfo{
 			name: "B",
-			Encoder: func(src *SampleF, dest *SampleFJson) error {
+			Encoder: func(src *SampleF, dest *SampleFJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.B = src.B
 				return nil
 			},
-			Decoder: func(src *SampleFJson, dest *SampleF) error {
+			Decoder: func(src *SampleFJSON, dest *SampleF) error {
 				if src == nil {
 					return nil
 				}
@@ -72,27 +79,31 @@ func NewSampleFJsonBuilder() *SampleFJsonBuilder {
 	}
 }
 
-func (b *SampleFJsonBuilder) AddAll() *SampleFJsonBuilder {
+// AddAll adds all property to SampleFJSONBuilder.
+func (b *SampleFJSONBuilder) AddAll() *SampleFJSONBuilder {
 	b._properties["A"] = b.A
 	b._properties["B"] = b.B
 	return b
 }
 
-func (b *SampleFJsonBuilder) Add(info *SampleFPropertyInfo) *SampleFJsonBuilder {
+// Add specified property to SampleFJSONBuilder.
+func (b *SampleFJSONBuilder) Add(info *SampleFPropertyInfo) *SampleFJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *SampleFJsonBuilder) Remove(info *SampleFPropertyInfo) *SampleFJsonBuilder {
+// Remove specified property to SampleFJSONBuilder.
+func (b *SampleFJSONBuilder) Remove(info *SampleFPropertyInfo) *SampleFJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *SampleFJsonBuilder) Convert(orig *SampleF) (*SampleFJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *SampleFJSONBuilder) Convert(orig *SampleF) (*SampleFJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &SampleFJson{}
+	ret := &SampleFJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -103,12 +114,13 @@ func (b *SampleFJsonBuilder) Convert(orig *SampleF) (*SampleFJson, error) {
 	return ret, nil
 }
 
-func (b *SampleFJsonBuilder) ConvertList(orig []*SampleF) (SampleFJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *SampleFJSONBuilder) ConvertList(orig []*SampleF) (SampleFJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(SampleFJsonList, len(orig))
+	list := make(SampleFJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -120,10 +132,11 @@ func (b *SampleFJsonBuilder) ConvertList(orig []*SampleF) (SampleFJsonList, erro
 	return list, nil
 }
 
-func (orig *SampleFJson) Convert() (*SampleF, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *SampleFJSON) Convert() (*SampleF, error) {
 	ret := &SampleF{}
 
-	b := NewSampleFJsonBuilder().AddAll()
+	b := NewSampleFJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -133,8 +146,9 @@ func (orig *SampleFJson) Convert() (*SampleF, error) {
 	return ret, nil
 }
 
-func (jsonList SampleFJsonList) Convert() ([]*SampleF, error) {
-	orig := ([]*SampleFJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList SampleFJSONList) Convert() ([]*SampleF, error) {
+	orig := ([]*SampleFJSON)(jsonList)
 
 	list := make([]*SampleF, len(orig))
 	for idx, or := range orig {
@@ -148,7 +162,8 @@ func (jsonList SampleFJsonList) Convert() ([]*SampleF, error) {
 	return list, nil
 }
 
-func (b *SampleFJsonBuilder) Marshal(orig *SampleF) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *SampleFJSONBuilder) Marshal(orig *SampleF) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err
