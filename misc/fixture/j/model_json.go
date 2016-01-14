@@ -6,28 +6,33 @@ import (
 	"encoding/json"
 )
 
-// for Foo
-type FooJson struct {
+// FooJSON is jsonized struct for Foo.
+type FooJSON struct {
 	Tmp       *Temp `json:"tmp,omitempty"`
 	Bar       `json:",omitempty"`
 	*Buzz     `json:",omitempty"`
-	HogeJson  `json:",omitempty"`
-	*FugaJson `json:",omitempty"`
+	HogeJSON  `json:",omitempty"`
+	*FugaJSON `json:",omitempty"`
 }
 
-type FooJsonList []*FooJson
+// FooJSONList is synonym about []*FooJSON.
+type FooJSONList []*FooJSON
 
-type FooPropertyEncoder func(src *Foo, dest *FooJson) error
+// FooPropertyEncoder is property encoder for [1]sJSON.
+type FooPropertyEncoder func(src *Foo, dest *FooJSON) error
 
-type FooPropertyDecoder func(src *FooJson, dest *Foo) error
+// FooPropertyDecoder is property decoder for [1]sJSON.
+type FooPropertyDecoder func(src *FooJSON, dest *Foo) error
 
+// FooPropertyInfo stores property information.
 type FooPropertyInfo struct {
 	name    string
 	Encoder FooPropertyEncoder
 	Decoder FooPropertyDecoder
 }
 
-type FooJsonBuilder struct {
+// FooJSONBuilder convert between Foo to FooJSON mutually.
+type FooJSONBuilder struct {
 	_properties map[string]*FooPropertyInfo
 	Tmp         *FooPropertyInfo
 	Bar         *FooPropertyInfo
@@ -36,19 +41,20 @@ type FooJsonBuilder struct {
 	Fuga        *FooPropertyInfo
 }
 
-func NewFooJsonBuilder() *FooJsonBuilder {
-	return &FooJsonBuilder{
+// NewFooJSONBuilder make new FooJSONBuilder.
+func NewFooJSONBuilder() *FooJSONBuilder {
+	return &FooJSONBuilder{
 		_properties: map[string]*FooPropertyInfo{},
 		Tmp: &FooPropertyInfo{
 			name: "Tmp",
-			Encoder: func(src *Foo, dest *FooJson) error {
+			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Tmp = src.Tmp
 				return nil
 			},
-			Decoder: func(src *FooJson, dest *Foo) error {
+			Decoder: func(src *FooJSON, dest *Foo) error {
 				if src == nil {
 					return nil
 				}
@@ -58,14 +64,14 @@ func NewFooJsonBuilder() *FooJsonBuilder {
 		},
 		Bar: &FooPropertyInfo{
 			name: "Bar",
-			Encoder: func(src *Foo, dest *FooJson) error {
+			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Bar = src.Bar
 				return nil
 			},
-			Decoder: func(src *FooJson, dest *Foo) error {
+			Decoder: func(src *FooJSON, dest *Foo) error {
 				if src == nil {
 					return nil
 				}
@@ -75,14 +81,14 @@ func NewFooJsonBuilder() *FooJsonBuilder {
 		},
 		Buzz: &FooPropertyInfo{
 			name: "Buzz",
-			Encoder: func(src *Foo, dest *FooJson) error {
+			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Buzz = src.Buzz
 				return nil
 			},
-			Decoder: func(src *FooJson, dest *Foo) error {
+			Decoder: func(src *FooJSON, dest *Foo) error {
 				if src == nil {
 					return nil
 				}
@@ -92,22 +98,22 @@ func NewFooJsonBuilder() *FooJsonBuilder {
 		},
 		Hoge: &FooPropertyInfo{
 			name: "Hoge",
-			Encoder: func(src *Foo, dest *FooJson) error {
+			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
 				}
-				d, err := NewHogeJsonBuilder().AddAll().Convert(&src.Hoge)
+				d, err := NewHogeJSONBuilder().AddAll().Convert(&src.Hoge)
 				if err != nil {
 					return err
 				}
-				dest.HogeJson = *d
+				dest.HogeJSON = *d
 				return nil
 			},
-			Decoder: func(src *FooJson, dest *Foo) error {
+			Decoder: func(src *FooJSON, dest *Foo) error {
 				if src == nil {
 					return nil
 				}
-				d, err := src.HogeJson.Convert()
+				d, err := src.HogeJSON.Convert()
 				if err != nil {
 					return err
 				}
@@ -117,26 +123,26 @@ func NewFooJsonBuilder() *FooJsonBuilder {
 		},
 		Fuga: &FooPropertyInfo{
 			name: "Fuga",
-			Encoder: func(src *Foo, dest *FooJson) error {
+			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
 				} else if src.Fuga == nil {
 					return nil
 				}
-				d, err := NewFugaJsonBuilder().AddAll().Convert(src.Fuga)
+				d, err := NewFugaJSONBuilder().AddAll().Convert(src.Fuga)
 				if err != nil {
 					return err
 				}
-				dest.FugaJson = d
+				dest.FugaJSON = d
 				return nil
 			},
-			Decoder: func(src *FooJson, dest *Foo) error {
+			Decoder: func(src *FooJSON, dest *Foo) error {
 				if src == nil {
 					return nil
-				} else if src.FugaJson == nil {
+				} else if src.FugaJSON == nil {
 					return nil
 				}
-				d, err := src.FugaJson.Convert()
+				d, err := src.FugaJSON.Convert()
 				if err != nil {
 					return err
 				}
@@ -147,7 +153,8 @@ func NewFooJsonBuilder() *FooJsonBuilder {
 	}
 }
 
-func (b *FooJsonBuilder) AddAll() *FooJsonBuilder {
+// AddAll adds all property to FooJSONBuilder.
+func (b *FooJSONBuilder) AddAll() *FooJSONBuilder {
 	b._properties["Tmp"] = b.Tmp
 	b._properties["Bar"] = b.Bar
 	b._properties["Buzz"] = b.Buzz
@@ -156,21 +163,24 @@ func (b *FooJsonBuilder) AddAll() *FooJsonBuilder {
 	return b
 }
 
-func (b *FooJsonBuilder) Add(info *FooPropertyInfo) *FooJsonBuilder {
+// Add specified property to FooJSONBuilder.
+func (b *FooJSONBuilder) Add(info *FooPropertyInfo) *FooJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *FooJsonBuilder) Remove(info *FooPropertyInfo) *FooJsonBuilder {
+// Remove specified property to FooJSONBuilder.
+func (b *FooJSONBuilder) Remove(info *FooPropertyInfo) *FooJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *FooJsonBuilder) Convert(orig *Foo) (*FooJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *FooJSONBuilder) Convert(orig *Foo) (*FooJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &FooJson{}
+	ret := &FooJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -181,12 +191,13 @@ func (b *FooJsonBuilder) Convert(orig *Foo) (*FooJson, error) {
 	return ret, nil
 }
 
-func (b *FooJsonBuilder) ConvertList(orig []*Foo) (FooJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *FooJSONBuilder) ConvertList(orig []*Foo) (FooJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(FooJsonList, len(orig))
+	list := make(FooJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -198,10 +209,11 @@ func (b *FooJsonBuilder) ConvertList(orig []*Foo) (FooJsonList, error) {
 	return list, nil
 }
 
-func (orig *FooJson) Convert() (*Foo, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *FooJSON) Convert() (*Foo, error) {
 	ret := &Foo{}
 
-	b := NewFooJsonBuilder().AddAll()
+	b := NewFooJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -211,8 +223,9 @@ func (orig *FooJson) Convert() (*Foo, error) {
 	return ret, nil
 }
 
-func (jsonList FooJsonList) Convert() ([]*Foo, error) {
-	orig := ([]*FooJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList FooJSONList) Convert() ([]*Foo, error) {
+	orig := ([]*FooJSON)(jsonList)
 
 	list := make([]*Foo, len(orig))
 	for idx, or := range orig {
@@ -226,7 +239,8 @@ func (jsonList FooJsonList) Convert() ([]*Foo, error) {
 	return list, nil
 }
 
-func (b *FooJsonBuilder) Marshal(orig *Foo) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *FooJSONBuilder) Marshal(orig *Foo) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err
@@ -234,41 +248,47 @@ func (b *FooJsonBuilder) Marshal(orig *Foo) ([]byte, error) {
 	return json.Marshal(ret)
 }
 
-// for Hoge
-type HogeJson struct {
+// HogeJSON is jsonized struct for Hoge.
+type HogeJSON struct {
 	Hoge1 string `json:"hoge1,omitempty"`
 }
 
-type HogeJsonList []*HogeJson
+// HogeJSONList is synonym about []*HogeJSON.
+type HogeJSONList []*HogeJSON
 
-type HogePropertyEncoder func(src *Hoge, dest *HogeJson) error
+// HogePropertyEncoder is property encoder for [1]sJSON.
+type HogePropertyEncoder func(src *Hoge, dest *HogeJSON) error
 
-type HogePropertyDecoder func(src *HogeJson, dest *Hoge) error
+// HogePropertyDecoder is property decoder for [1]sJSON.
+type HogePropertyDecoder func(src *HogeJSON, dest *Hoge) error
 
+// HogePropertyInfo stores property information.
 type HogePropertyInfo struct {
 	name    string
 	Encoder HogePropertyEncoder
 	Decoder HogePropertyDecoder
 }
 
-type HogeJsonBuilder struct {
+// HogeJSONBuilder convert between Hoge to HogeJSON mutually.
+type HogeJSONBuilder struct {
 	_properties map[string]*HogePropertyInfo
 	Hoge1       *HogePropertyInfo
 }
 
-func NewHogeJsonBuilder() *HogeJsonBuilder {
-	return &HogeJsonBuilder{
+// NewHogeJSONBuilder make new HogeJSONBuilder.
+func NewHogeJSONBuilder() *HogeJSONBuilder {
+	return &HogeJSONBuilder{
 		_properties: map[string]*HogePropertyInfo{},
 		Hoge1: &HogePropertyInfo{
 			name: "Hoge1",
-			Encoder: func(src *Hoge, dest *HogeJson) error {
+			Encoder: func(src *Hoge, dest *HogeJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Hoge1 = src.Hoge1
 				return nil
 			},
-			Decoder: func(src *HogeJson, dest *Hoge) error {
+			Decoder: func(src *HogeJSON, dest *Hoge) error {
 				if src == nil {
 					return nil
 				}
@@ -279,26 +299,30 @@ func NewHogeJsonBuilder() *HogeJsonBuilder {
 	}
 }
 
-func (b *HogeJsonBuilder) AddAll() *HogeJsonBuilder {
+// AddAll adds all property to HogeJSONBuilder.
+func (b *HogeJSONBuilder) AddAll() *HogeJSONBuilder {
 	b._properties["Hoge1"] = b.Hoge1
 	return b
 }
 
-func (b *HogeJsonBuilder) Add(info *HogePropertyInfo) *HogeJsonBuilder {
+// Add specified property to HogeJSONBuilder.
+func (b *HogeJSONBuilder) Add(info *HogePropertyInfo) *HogeJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *HogeJsonBuilder) Remove(info *HogePropertyInfo) *HogeJsonBuilder {
+// Remove specified property to HogeJSONBuilder.
+func (b *HogeJSONBuilder) Remove(info *HogePropertyInfo) *HogeJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *HogeJsonBuilder) Convert(orig *Hoge) (*HogeJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *HogeJSONBuilder) Convert(orig *Hoge) (*HogeJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &HogeJson{}
+	ret := &HogeJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -309,12 +333,13 @@ func (b *HogeJsonBuilder) Convert(orig *Hoge) (*HogeJson, error) {
 	return ret, nil
 }
 
-func (b *HogeJsonBuilder) ConvertList(orig []*Hoge) (HogeJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *HogeJSONBuilder) ConvertList(orig []*Hoge) (HogeJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(HogeJsonList, len(orig))
+	list := make(HogeJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -326,10 +351,11 @@ func (b *HogeJsonBuilder) ConvertList(orig []*Hoge) (HogeJsonList, error) {
 	return list, nil
 }
 
-func (orig *HogeJson) Convert() (*Hoge, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *HogeJSON) Convert() (*Hoge, error) {
 	ret := &Hoge{}
 
-	b := NewHogeJsonBuilder().AddAll()
+	b := NewHogeJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -339,8 +365,9 @@ func (orig *HogeJson) Convert() (*Hoge, error) {
 	return ret, nil
 }
 
-func (jsonList HogeJsonList) Convert() ([]*Hoge, error) {
-	orig := ([]*HogeJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList HogeJSONList) Convert() ([]*Hoge, error) {
+	orig := ([]*HogeJSON)(jsonList)
 
 	list := make([]*Hoge, len(orig))
 	for idx, or := range orig {
@@ -354,7 +381,8 @@ func (jsonList HogeJsonList) Convert() ([]*Hoge, error) {
 	return list, nil
 }
 
-func (b *HogeJsonBuilder) Marshal(orig *Hoge) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *HogeJSONBuilder) Marshal(orig *Hoge) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err
@@ -362,41 +390,47 @@ func (b *HogeJsonBuilder) Marshal(orig *Hoge) ([]byte, error) {
 	return json.Marshal(ret)
 }
 
-// for Fuga
-type FugaJson struct {
+// FugaJSON is jsonized struct for Fuga.
+type FugaJSON struct {
 	Fuga1 string `json:"fuga1,omitempty"`
 }
 
-type FugaJsonList []*FugaJson
+// FugaJSONList is synonym about []*FugaJSON.
+type FugaJSONList []*FugaJSON
 
-type FugaPropertyEncoder func(src *Fuga, dest *FugaJson) error
+// FugaPropertyEncoder is property encoder for [1]sJSON.
+type FugaPropertyEncoder func(src *Fuga, dest *FugaJSON) error
 
-type FugaPropertyDecoder func(src *FugaJson, dest *Fuga) error
+// FugaPropertyDecoder is property decoder for [1]sJSON.
+type FugaPropertyDecoder func(src *FugaJSON, dest *Fuga) error
 
+// FugaPropertyInfo stores property information.
 type FugaPropertyInfo struct {
 	name    string
 	Encoder FugaPropertyEncoder
 	Decoder FugaPropertyDecoder
 }
 
-type FugaJsonBuilder struct {
+// FugaJSONBuilder convert between Fuga to FugaJSON mutually.
+type FugaJSONBuilder struct {
 	_properties map[string]*FugaPropertyInfo
 	Fuga1       *FugaPropertyInfo
 }
 
-func NewFugaJsonBuilder() *FugaJsonBuilder {
-	return &FugaJsonBuilder{
+// NewFugaJSONBuilder make new FugaJSONBuilder.
+func NewFugaJSONBuilder() *FugaJSONBuilder {
+	return &FugaJSONBuilder{
 		_properties: map[string]*FugaPropertyInfo{},
 		Fuga1: &FugaPropertyInfo{
 			name: "Fuga1",
-			Encoder: func(src *Fuga, dest *FugaJson) error {
+			Encoder: func(src *Fuga, dest *FugaJSON) error {
 				if src == nil {
 					return nil
 				}
 				dest.Fuga1 = src.Fuga1
 				return nil
 			},
-			Decoder: func(src *FugaJson, dest *Fuga) error {
+			Decoder: func(src *FugaJSON, dest *Fuga) error {
 				if src == nil {
 					return nil
 				}
@@ -407,26 +441,30 @@ func NewFugaJsonBuilder() *FugaJsonBuilder {
 	}
 }
 
-func (b *FugaJsonBuilder) AddAll() *FugaJsonBuilder {
+// AddAll adds all property to FugaJSONBuilder.
+func (b *FugaJSONBuilder) AddAll() *FugaJSONBuilder {
 	b._properties["Fuga1"] = b.Fuga1
 	return b
 }
 
-func (b *FugaJsonBuilder) Add(info *FugaPropertyInfo) *FugaJsonBuilder {
+// Add specified property to FugaJSONBuilder.
+func (b *FugaJSONBuilder) Add(info *FugaPropertyInfo) *FugaJSONBuilder {
 	b._properties[info.name] = info
 	return b
 }
 
-func (b *FugaJsonBuilder) Remove(info *FugaPropertyInfo) *FugaJsonBuilder {
+// Remove specified property to FugaJSONBuilder.
+func (b *FugaJSONBuilder) Remove(info *FugaPropertyInfo) *FugaJSONBuilder {
 	delete(b._properties, info.name)
 	return b
 }
 
-func (b *FugaJsonBuilder) Convert(orig *Fuga) (*FugaJson, error) {
+// Convert specified non-JSON object to JSON object.
+func (b *FugaJSONBuilder) Convert(orig *Fuga) (*FugaJSON, error) {
 	if orig == nil {
 		return nil, nil
 	}
-	ret := &FugaJson{}
+	ret := &FugaJSON{}
 
 	for _, info := range b._properties {
 		if err := info.Encoder(orig, ret); err != nil {
@@ -437,12 +475,13 @@ func (b *FugaJsonBuilder) Convert(orig *Fuga) (*FugaJson, error) {
 	return ret, nil
 }
 
-func (b *FugaJsonBuilder) ConvertList(orig []*Fuga) (FugaJsonList, error) {
+// ConvertList specified non-JSON slice to JSONList.
+func (b *FugaJSONBuilder) ConvertList(orig []*Fuga) (FugaJSONList, error) {
 	if orig == nil {
 		return nil, nil
 	}
 
-	list := make(FugaJsonList, len(orig))
+	list := make(FugaJSONList, len(orig))
 	for idx, or := range orig {
 		json, err := b.Convert(or)
 		if err != nil {
@@ -454,10 +493,11 @@ func (b *FugaJsonBuilder) ConvertList(orig []*Fuga) (FugaJsonList, error) {
 	return list, nil
 }
 
-func (orig *FugaJson) Convert() (*Fuga, error) {
+// Convert specified JSON object to non-JSON object.
+func (orig *FugaJSON) Convert() (*Fuga, error) {
 	ret := &Fuga{}
 
-	b := NewFugaJsonBuilder().AddAll()
+	b := NewFugaJSONBuilder().AddAll()
 	for _, info := range b._properties {
 		if err := info.Decoder(orig, ret); err != nil {
 			return nil, err
@@ -467,8 +507,9 @@ func (orig *FugaJson) Convert() (*Fuga, error) {
 	return ret, nil
 }
 
-func (jsonList FugaJsonList) Convert() ([]*Fuga, error) {
-	orig := ([]*FugaJson)(jsonList)
+// Convert specified JSONList to non-JSON slice.
+func (jsonList FugaJSONList) Convert() ([]*Fuga, error) {
+	orig := ([]*FugaJSON)(jsonList)
 
 	list := make([]*Fuga, len(orig))
 	for idx, or := range orig {
@@ -482,7 +523,8 @@ func (jsonList FugaJsonList) Convert() ([]*Fuga, error) {
 	return list, nil
 }
 
-func (b *FugaJsonBuilder) Marshal(orig *Fuga) ([]byte, error) {
+// Marshal non-JSON object to JSON string.
+func (b *FugaJSONBuilder) Marshal(orig *Fuga) ([]byte, error) {
 	ret, err := b.Convert(orig)
 	if err != nil {
 		return nil, err

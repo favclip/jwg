@@ -9,7 +9,7 @@ import (
 	"github.com/favclip/genbase"
 )
 
-// BuildStruct represents source code of assembling..
+// BuildSource represents source code of assembling..
 type BuildSource struct {
 	g         *genbase.Generator
 	pkg       *genbase.PackageInfo
@@ -46,6 +46,7 @@ type BuildTag struct {
 	String    bool // e.g. Int64String int64 `json:",string"`
 }
 
+// Parse construct *BuildSource from package & type information.
 func Parse(pkg *genbase.PackageInfo, typeInfos genbase.TypeInfos) (*BuildSource, error) {
 	bu := &BuildSource{
 		g:         genbase.NewGenerator(pkg),
@@ -189,6 +190,7 @@ func (b *BuildSource) parseField(st *BuildStruct, typeInfo *genbase.TypeInfo, fi
 	return nil
 }
 
+// Emit generate wrapper code.
 func (b *BuildSource) Emit(args *[]string) ([]byte, error) {
 	b.g.PrintHeader("jwg", args)
 
@@ -203,17 +205,17 @@ func (b *BuildSource) Emit(args *[]string) ([]byte, error) {
 }
 
 func (st *BuildStruct) emit(g *genbase.Generator) error {
-	g.Printf("// for %s\n", st.Name())
+	g.Printf("// %[1]sJSON is jsonized struct for %[1]s.\n", st.Name())
 
-	// generate FooJson struct from Foo struct
-	g.Printf("type %sJson struct {\n", st.Name())
+	// generate FooJSON struct from Foo struct
+	g.Printf("type %sJSON struct {\n", st.Name())
 	for _, field := range st.Fields {
 		if field.Tag.Ignore {
 			continue
 		}
 		postfix := ""
 		if field.WithJWG() {
-			postfix = "Json"
+			postfix = "JSON"
 		}
 		tagString := field.Tag.TagString()
 		if tagString != "" {
@@ -227,14 +229,18 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	}
 	g.Printf("}\n\n")
 
-	g.Printf("type %[1]sJsonList []*%[1]sJson\n\n", st.Name())
+	g.Printf("// %[1]sJSONList is synonym about []*%[1]sJSON.\n", st.Name())
+	g.Printf("type %[1]sJSONList []*%[1]sJSON\n\n", st.Name())
 
 	// generate property builder
-	g.Printf("type %[1]sPropertyEncoder func(src *%[1]s, dest *%[1]sJson) error\n\n", st.Name())
-	g.Printf("type %[1]sPropertyDecoder func(src *%[1]sJson, dest *%[1]s) error\n\n", st.Name())
+	g.Printf("// %[1]sPropertyEncoder is property encoder for [1]sJSON.\n", st.Name())
+	g.Printf("type %[1]sPropertyEncoder func(src *%[1]s, dest *%[1]sJSON) error\n\n", st.Name())
+	g.Printf("// %[1]sPropertyDecoder is property decoder for [1]sJSON.\n", st.Name())
+	g.Printf("type %[1]sPropertyDecoder func(src *%[1]sJSON, dest *%[1]s) error\n\n", st.Name())
 
 	// generate property info
 	g.Printf(`
+			// %[1]sPropertyInfo stores property information.
 			type %[1]sPropertyInfo struct {
 				name	string
 				Encoder %[1]sPropertyEncoder
@@ -244,7 +250,8 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 			`, st.Name())
 
 	// generate json builder
-	g.Printf("type %sJsonBuilder struct {\n", st.Name())
+	g.Printf("// %[1]sJSONBuilder convert between %[1]s to %[1]sJSON mutually.\n", st.Name())
+	g.Printf("type %sJSONBuilder struct {\n", st.Name())
 	g.Printf("_properties map[string]*%sPropertyInfo\n", st.Name())
 	for _, field := range st.Fields {
 		if field.Tag.Ignore {
@@ -255,8 +262,9 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	g.Printf("}\n")
 
 	// generate new json builder factory function
-	g.Printf("func New%[1]sJsonBuilder() *%[1]sJsonBuilder {\n", st.Name())
-	g.Printf("return &%sJsonBuilder{\n", st.Name())
+	g.Printf("// New%[1]sJSONBuilder make new %[1]sJSONBuilder.\n", st.Name())
+	g.Printf("func New%[1]sJSONBuilder() *%[1]sJSONBuilder {\n", st.Name())
+	g.Printf("return &%sJSONBuilder{\n", st.Name())
 	g.Printf("_properties: map[string]*%sPropertyInfo{},\n", st.Name())
 	for _, field := range st.Fields {
 		if field.Tag.Ignore {
@@ -270,26 +278,26 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							} else if src.%[2]s == nil {
 								return nil
 							}
-							d, err := New%[3]sJsonBuilder().AddAll().Convert(src.%[2]s)
+							d, err := New%[3]sJSONBuilder().AddAll().Convert(src.%[2]s)
 							if err != nil {
 								return err
 							}
-							dest.%[2]sJson = d
+							dest.%[2]sJSON = d
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
-							} else if src.%[2]sJson == nil {
+							} else if src.%[2]sJSON == nil {
 								return nil
 							}
-							d, err := src.%[2]sJson.Convert()
+							d, err := src.%[2]sJSON.Convert()
 							if err != nil {
 								return err
 							}
@@ -305,22 +313,22 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							}
-							d, err := New%[3]sJsonBuilder().AddAll().Convert(&src.%[2]s)
+							d, err := New%[3]sJSONBuilder().AddAll().Convert(&src.%[2]s)
 							if err != nil {
 								return err
 							}
-							dest.%[2]sJson = *d
+							dest.%[2]sJSON = *d
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
 							}
-							d, err := src.%[2]sJson.Convert()
+							d, err := src.%[2]sJSON.Convert()
 							if err != nil {
 								return err
 							}
@@ -332,14 +340,14 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 			} else {
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							}
 							dest.%[2]s = src.%[2]s
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
 							}
@@ -357,20 +365,20 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							} else if src.%[2]s == nil {
 								return nil
 							}
-							list, err := New%[3]sJsonBuilder().AddAll().ConvertList(*src.%[2]s)
+							list, err := New%[3]sJSONBuilder().AddAll().ConvertList(*src.%[2]s)
 							if err != nil {
 								return err
 							}
-							dest.%[2]s = (*[]*%[3]sJson)(&list)
+							dest.%[2]s = (*[]*%[3]sJSON)(&list)
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
 							} else if src.%[2]s == nil {
@@ -399,14 +407,14 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							} else if src.%[2]s == nil {
 								return nil
 							}
-							b := New%[3]sJsonBuilder().AddAll()
-							list := make([]%[3]sJson, len(*src.%[2]s))
+							b := New%[3]sJSONBuilder().AddAll()
+							list := make([]%[3]sJSON, len(*src.%[2]s))
 							for idx, obj := range *src.%[2]s {
 								d, err := b.Convert(&obj)
 								if err != nil {
@@ -417,7 +425,7 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							dest.%[2]s = &list
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
 							} else if src.%[2]s == nil {
@@ -443,18 +451,18 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							}
-							list, err := New%[3]sJsonBuilder().AddAll().ConvertList(src.%[2]s)
+							list, err := New%[3]sJSONBuilder().AddAll().ConvertList(src.%[2]s)
 							if err != nil {
 								return err
 							}
-							dest.%[2]s = ([]*%[3]sJson)(list)
+							dest.%[2]s = ([]*%[3]sJSON)(list)
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
 							}
@@ -481,12 +489,12 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							}
-							b := New%[3]sJsonBuilder().AddAll()
-							list := make([]%[3]sJson, len(src.%[2]s))
+							b := New%[3]sJSONBuilder().AddAll()
+							list := make([]%[3]sJSON, len(src.%[2]s))
 							for idx, obj := range src.%[2]s {
 								d, err := b.Convert(&obj)
 								if err != nil {
@@ -497,7 +505,7 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							dest.%[2]s = list
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
 							}
@@ -521,20 +529,20 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							} else if src.%[2]s == nil {
 								return nil
 							}
-							d, err := New%[3]sJsonBuilder().AddAll().Convert(src.%[2]s)
+							d, err := New%[3]sJSONBuilder().AddAll().Convert(src.%[2]s)
 							if err != nil {
 								return err
 							}
 							dest.%[2]s = d
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
 							} else if src.%[2]s == nil {
@@ -556,18 +564,18 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							}
-							d, err := New%[3]sJsonBuilder().AddAll().Convert(&src.%[2]s)
+							d, err := New%[3]sJSONBuilder().AddAll().Convert(&src.%[2]s)
 							if err != nil {
 								return err
 							}
 							dest.%[2]s = *d
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
 							}
@@ -583,14 +591,14 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 			} else {
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
 						name: "%[2]s",
-						Encoder: func(src *%[1]s, dest *%[1]sJson) error {
+						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
 							}
 							dest.%[2]s = src.%[2]s
 							return nil
 						},
-						Decoder: func(src *%[1]sJson, dest *%[1]s) error {
+						Decoder: func(src *%[1]sJSON, dest *%[1]s) error {
 							if src == nil {
 								return nil
 							}
@@ -606,7 +614,8 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	g.Printf("}\n\n")
 
 	// generate AddAll method
-	g.Printf("func (b *%[1]sJsonBuilder) AddAll() *%[1]sJsonBuilder {\n", st.Name())
+	g.Printf("// AddAll adds all property to %[1]sJSONBuilder.\n", st.Name())
+	g.Printf("func (b *%[1]sJSONBuilder) AddAll() *%[1]sJSONBuilder {\n", st.Name())
 	for _, field := range st.Fields {
 		if field.Tag.Ignore {
 			continue
@@ -622,21 +631,24 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 
 	// generate method for modifing and marshaling
 	g.Printf(`
-			func (b *%[1]sJsonBuilder) Add(info *%[1]sPropertyInfo) *%[1]sJsonBuilder {
+			// Add specified property to %[1]sJSONBuilder.
+			func (b *%[1]sJSONBuilder) Add(info *%[1]sPropertyInfo) *%[1]sJSONBuilder {
 				b._properties[info.name] = info
 				return b
 			}
 
-			func (b *%[1]sJsonBuilder) Remove(info *%[1]sPropertyInfo) *%[1]sJsonBuilder {
+			// Remove specified property to %[1]sJSONBuilder.
+			func (b *%[1]sJSONBuilder) Remove(info *%[1]sPropertyInfo) *%[1]sJSONBuilder {
 				delete(b._properties, info.name)
 				return b
 			}
 
-			func (b *%[1]sJsonBuilder) Convert(orig *%[1]s) (*%[1]sJson, error) {
+			// Convert specified non-JSON object to JSON object.
+			func (b *%[1]sJSONBuilder) Convert(orig *%[1]s) (*%[1]sJSON, error) {
 				if orig == nil {
 				  return nil, nil
 				}
-				ret := &%[1]sJson{}
+				ret := &%[1]sJSON{}
 
 				for _, info := range b._properties {
 					if err := info.Encoder(orig, ret); err != nil {
@@ -647,12 +659,13 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				return ret, nil
 			}
 
-			func (b *%[1]sJsonBuilder) ConvertList(orig []*%[1]s) (%[1]sJsonList, error) {
+			// ConvertList specified non-JSON slice to JSONList.
+			func (b *%[1]sJSONBuilder) ConvertList(orig []*%[1]s) (%[1]sJSONList, error) {
 				if orig == nil {
 					return nil, nil
 				}
 
-				list := make(%[1]sJsonList, len(orig))
+				list := make(%[1]sJSONList, len(orig))
 				for idx, or := range orig {
 					json, err := b.Convert(or)
 					if err != nil {
@@ -664,10 +677,11 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				return list, nil
 			}
 
-			func (orig *%[1]sJson) Convert() (*%[1]s, error) {
+			// Convert specified JSON object to non-JSON object.
+			func (orig *%[1]sJSON) Convert() (*%[1]s, error) {
 				ret := &%[1]s{}
 
-				b := New%[1]sJsonBuilder().AddAll()
+				b := New%[1]sJSONBuilder().AddAll()
 				for _, info := range b._properties {
 					if err := info.Decoder(orig, ret); err != nil {
 						return nil, err
@@ -677,8 +691,9 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				return ret, nil
 			}
 
-			func (jsonList %[1]sJsonList) Convert() ([]*%[1]s, error) {
-				orig := ([]*%[1]sJson)(jsonList)
+			// Convert specified JSONList to non-JSON slice.
+			func (jsonList %[1]sJSONList) Convert() ([]*%[1]s, error) {
+				orig := ([]*%[1]sJSON)(jsonList)
 
 				list := make([]*%[1]s, len(orig))
 				for idx, or := range orig {
@@ -692,7 +707,8 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				return list, nil
 			}
 
-			func (b *%[1]sJsonBuilder) Marshal(orig *%[1]s) ([]byte, error) {
+			// Marshal non-JSON object to JSON string.
+			func (b *%[1]sJSONBuilder) Marshal(orig *%[1]s) ([]byte, error) {
 				ret, err :=  b.Convert(orig)
 				if err != nil {
 					return nil, err
@@ -706,10 +722,12 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	return nil
 }
 
+// Name returns struct type name.
 func (st *BuildStruct) Name() string {
 	return st.typeInfo.Name()
 }
 
+// WithJWG returns is field jwg annotated type.
 func (f *BuildField) WithJWG() bool {
 	fieldType, err := genbase.ExprToBaseTypeName(f.fieldInfo.Type)
 	if err != nil {
@@ -723,26 +741,32 @@ func (f *BuildField) WithJWG() bool {
 	return false
 }
 
+// IsPtr returns field type is pointer.
 func (f *BuildField) IsPtr() bool {
 	return f.fieldInfo.IsPtr()
 }
 
+// IsArray returns field type is array.
 func (f *BuildField) IsArray() bool {
 	return f.fieldInfo.IsArray()
 }
 
+// IsPtrArray returns field type is pointer array.
 func (f *BuildField) IsPtrArray() bool {
 	return f.fieldInfo.IsPtrArray()
 }
 
+// IsArrayPtr returns field type is array of pointer.
 func (f *BuildField) IsArrayPtr() bool {
 	return f.fieldInfo.IsArrayPtr()
 }
 
+// IsPtrArrayPtr returns field type is pointer of pointer array.
 func (f *BuildField) IsPtrArrayPtr() bool {
 	return f.fieldInfo.IsPtrArrayPtr()
 }
 
+// TagString build tag string.
 func (tag *BuildTag) TagString() string {
 	result := tag.Name
 	result += ",omitempty"

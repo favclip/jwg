@@ -23,7 +23,7 @@ user := &User {
 	"go-chan",
 	"5ch",
 }
-builder := NewUserJsonBuilder()
+builder := NewUserJSONBuilder()
 builder.AddAll()
 builder.Remove(builder.EncryptedPassword)
 json, _ := builder.Marshal(user)
@@ -45,7 +45,7 @@ type Sample struct {
 
 ```
 // generated!
-type SampleJson struct {
+type SampleJSON struct {
 	Foo string `json:"foo,omitempty"`
 }
 ```
@@ -55,9 +55,9 @@ usage:
 ```
 src := &Sample{"Foo!"}
 
-builder := NewSampleJsonBuilder() // generated!
+builder := NewSampleJSONBuilder() // generated!
 builder.AddAll()
-var jsonStruct *SampleJson = builder.Convert(src)
+var jsonStruct *SampleJSON = builder.Convert(src)
 
 json, err := json.Marshal(jsonStruct)
 ```

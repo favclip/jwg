@@ -14,7 +14,7 @@ import (
 func TestBasicUsage1(t *testing.T) {
 	src := &a.Sample{"Foo!"}
 
-	builder := a.NewSampleJsonBuilder()
+	builder := a.NewSampleJSONBuilder()
 	builder.AddAll()
 	jsonStruct, err := builder.Convert(src)
 	if err != nil {
@@ -38,7 +38,7 @@ func TestBasicUsage1(t *testing.T) {
 func TestBasicUsage2(t *testing.T) {
 	src := &a.Sample{"Foo!"}
 
-	builder := a.NewSampleJsonBuilder()
+	builder := a.NewSampleJSONBuilder()
 	builder.AddAll()
 	json, err := builder.Marshal(src)
 
@@ -56,7 +56,7 @@ func TestBasicUsage2(t *testing.T) {
 func TestWithRemove(t *testing.T) {
 	src := &b.Sample{"A", "B", 0, 1, "E"}
 
-	builder := b.NewSampleJsonBuilder()
+	builder := b.NewSampleJSONBuilder()
 	builder.AddAll()
 	builder.Remove(builder.A)
 	json, err := builder.Marshal(src)
@@ -76,7 +76,7 @@ func TestWithRemove(t *testing.T) {
 func TestWithAdd(t *testing.T) {
 	src := &b.Sample{"A", "B", 0, 1, "E"}
 
-	builder := b.NewSampleJsonBuilder()
+	builder := b.NewSampleJSONBuilder()
 	builder.Add(builder.D)
 	json, err := builder.Marshal(src)
 
@@ -94,8 +94,8 @@ func TestWithAdd(t *testing.T) {
 func TestReplacePropertyBuilder1(t *testing.T) {
 	src := &a.Sample{"Foo"}
 
-	builder := a.NewSampleJsonBuilder()
-	builder.Foo.Encoder = func(src *a.Sample, dest *a.SampleJson) error {
+	builder := a.NewSampleJSONBuilder()
+	builder.Foo.Encoder = func(src *a.Sample, dest *a.SampleJSON) error {
 		dest.Foo = src.Foo + "!!!"
 		return nil
 	}
@@ -114,14 +114,14 @@ func TestReplacePropertyBuilder1(t *testing.T) {
 }
 
 func TestReplacePropertyBuilder2(t *testing.T) {
-	builder := i.NewPeopleJsonBuilder()
+	builder := i.NewPeopleJSONBuilder()
 	builder.AddAll()
 	builder.Remove(builder.ShowPrivateInfo)
-	builder.List.Encoder = func(src *i.People, dest *i.PeopleJson) error {
+	builder.List.Encoder = func(src *i.People, dest *i.PeopleJSON) error {
 		if src == nil {
 			return nil
 		}
-		b := i.NewPersonJsonBuilder().AddAll()
+		b := i.NewPersonJSONBuilder().AddAll()
 		if !src.ShowPrivateInfo {
 			b.Remove(b.Password)
 		}
@@ -129,11 +129,15 @@ func TestReplacePropertyBuilder2(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		dest.List = ([]*i.PersonJson)(list)
+		dest.List = ([]*i.PersonJSON)(list)
 		return nil
 	}
 
-	people := &i.People{ShowPrivateInfo: false, List: []*i.Person{&i.Person{"vvakame", 30, "pw"}}}
+	people := &i.People{ShowPrivateInfo: false, List: []*i.Person{&i.Person{
+		Name:     "vvakame",
+		Age:      30,
+		Password: "pw",
+	}}}
 	json, err := builder.Convert(people)
 	if err != nil {
 		t.Log(err)
@@ -157,7 +161,7 @@ func TestWithPointerField(t *testing.T) {
 		&e.Foo{},
 	}
 
-	builder := e.NewSampleJsonBuilder()
+	builder := e.NewSampleJSONBuilder()
 	builder.AddAll()
 	json, err := builder.Marshal(src)
 
@@ -175,7 +179,7 @@ func TestWithPointerField(t *testing.T) {
 func TestWithImportStatement(t *testing.T) {
 	src := &f.SampleF{nil, nil}
 
-	builder := f.NewSampleFJsonBuilder()
+	builder := f.NewSampleFJSONBuilder()
 	builder.AddAll()
 	json, err := builder.Marshal(src)
 
@@ -191,7 +195,7 @@ func TestWithImportStatement(t *testing.T) {
 }
 
 func TestConvertJsonStructToVanillaStruct(t *testing.T) {
-	json := &a.SampleJson{"foo!"}
+	json := &a.SampleJSON{"foo!"}
 	src, err := json.Convert()
 	if err != nil {
 		t.Log(err)
