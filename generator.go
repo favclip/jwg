@@ -115,7 +115,8 @@ func (b *BuildSource) parseField(st *BuildStruct, typeInfo *genbase.TypeInfo, fi
 	st.Fields = append(st.Fields, field)
 
 	tag := &BuildTag{
-		field: field,
+		field:  field,
+		String: fieldInfo.IsInt64(),
 	}
 	field.Tag = tag
 	if field.Embed {

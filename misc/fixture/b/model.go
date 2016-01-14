@@ -8,4 +8,5 @@ type Sample struct {
 	C int    `json:",string"`
 	D int    `json:",omitempty,string"`
 	E string `json:"-"`
+	F int64  `` // add ,string automatically
 }
