@@ -54,7 +54,7 @@ func TestBasicUsage2(t *testing.T) {
 }
 
 func TestWithRemove(t *testing.T) {
-	src := &b.Sample{"A", "B", 0, 1, "E"}
+	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
 
 	builder := b.NewSampleJSONBuilder()
 	builder.AddAll()
@@ -74,7 +74,7 @@ func TestWithRemove(t *testing.T) {
 }
 
 func TestWithAdd(t *testing.T) {
-	src := &b.Sample{"A", "B", 0, 1, "E"}
+	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
 
 	builder := b.NewSampleJSONBuilder()
 	builder.Add(builder.D)
