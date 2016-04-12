@@ -4,7 +4,6 @@ package k
 
 import (
 	"encoding/json"
-
 	o1 "github.com/favclip/jwg/misc/other/v1"
 	o2 "github.com/favclip/jwg/misc/other/v2"
 )
