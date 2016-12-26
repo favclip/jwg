@@ -9,3 +9,4 @@ go run cmd/jwg/main.go -type Sample -output misc/fixture/h/model_json.go misc/fi
 go run cmd/jwg/main.go -output misc/fixture/i/model_json.go misc/fixture/i
 go run cmd/jwg/main.go -output misc/fixture/j/model_json.go misc/fixture/j
 go run cmd/jwg/main.go -output misc/fixture/k/model_json.go misc/fixture/k
+go run cmd/jwg/main.go -type Sample -output misc/fixture/l/model_json.go -transcripttag swagger,includes misc/fixture/l

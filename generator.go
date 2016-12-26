@@ -1,6 +1,7 @@
 package jwg
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -9,11 +10,15 @@ import (
 	"github.com/favclip/genbase"
 )
 
+// ErrInvalidTranscriptTags means invalid transcriptTag included.
+var ErrInvalidTranscriptTags = errors.New("do not contains json tag in transcriptTagNames")
+
 // BuildSource represents source code of assembling..
 type BuildSource struct {
-	g         *genbase.Generator
-	pkg       *genbase.PackageInfo
-	typeInfos genbase.TypeInfos
+	g                  *genbase.Generator
+	pkg                *genbase.PackageInfo
+	typeInfos          genbase.TypeInfos
+	transcriptTagNames []string // e.g. swagger etc... copy struct tag to *JSON struct
 
 	Structs []*BuildStruct
 }
@@ -31,9 +36,10 @@ type BuildField struct {
 	parent    *BuildStruct
 	fieldInfo *genbase.FieldInfo
 
-	Name  string
-	Embed bool
-	Tag   *BuildTag
+	Name           string
+	Embed          bool
+	Tag            *BuildTag
+	TranscriptTags []string
 }
 
 // BuildTag represents tag of BuildField.
@@ -47,11 +53,18 @@ type BuildTag struct {
 }
 
 // Parse construct *BuildSource from package & type information.
-func Parse(pkg *genbase.PackageInfo, typeInfos genbase.TypeInfos) (*BuildSource, error) {
+func Parse(pkg *genbase.PackageInfo, typeInfos genbase.TypeInfos, transcriptTags []string) (*BuildSource, error) {
+	for _, transcriptTag := range transcriptTags {
+		if transcriptTag == "json" {
+			return nil, ErrInvalidTranscriptTags
+		}
+	}
+
 	bu := &BuildSource{
-		g:         genbase.NewGenerator(pkg),
-		pkg:       pkg,
-		typeInfos: typeInfos,
+		g:                  genbase.NewGenerator(pkg),
+		pkg:                pkg,
+		typeInfos:          typeInfos,
+		transcriptTagNames: transcriptTags,
 	}
 
 	bu.g.AddImport("encoding/json", "")
@@ -144,6 +157,12 @@ func (b *BuildSource) parseField(st *BuildStruct, typeInfo *genbase.TypeInfo, fi
 		structTag := reflect.StructTag(tagText)
 
 		for _, key := range tagKeys {
+			for _, target := range b.transcriptTagNames {
+				if target == key {
+					tag := structTag.Get(key)
+					field.TranscriptTags = append(field.TranscriptTags, fmt.Sprintf(`%s:"%s"`, key, tag))
+				}
+			}
 			if key != "json" {
 				continue
 			}
@@ -226,6 +245,9 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 			postfix = "JSON"
 		}
 		tagString := field.Tag.TagString()
+		if len(field.TranscriptTags) != 0 {
+			tagString += " " + strings.Join(field.TranscriptTags, " ")
+		}
 		if tagString != "" {
 			tagString = fmt.Sprintf("`%s`", tagString)
 		}
