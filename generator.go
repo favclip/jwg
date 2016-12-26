@@ -53,9 +53,9 @@ type BuildTag struct {
 }
 
 // Parse construct *BuildSource from package & type information.
-func Parse(pkg *genbase.PackageInfo, typeInfos genbase.TypeInfos, transcriptTags []string) (*BuildSource, error) {
-	for _, transcriptTag := range transcriptTags {
-		if transcriptTag == "json" {
+func Parse(pkg *genbase.PackageInfo, typeInfos genbase.TypeInfos, transcriptTagNames []string) (*BuildSource, error) {
+	for _, tagName := range transcriptTagNames {
+		if tagName == "json" {
 			return nil, ErrInvalidTranscriptTags
 		}
 	}
@@ -64,7 +64,7 @@ func Parse(pkg *genbase.PackageInfo, typeInfos genbase.TypeInfos, transcriptTags
 		g:                  genbase.NewGenerator(pkg),
 		pkg:                pkg,
 		typeInfos:          typeInfos,
-		transcriptTagNames: transcriptTags,
+		transcriptTagNames: transcriptTagNames,
 	}
 
 	bu.g.AddImport("encoding/json", "")
