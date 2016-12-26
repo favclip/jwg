@@ -16,8 +16,9 @@ import (
 )
 
 var (
-	typeNames = flag.String("type", "", "comma-separated list of type names; must be set")
-	output    = flag.String("output", "", "output file name; default srcdir/<type>_string.go")
+	typeNames      = flag.String("type", "", "comma-separated list of type names; must be set")
+	output         = flag.String("output", "", "output file name; default srcdir/<type>_string.go")
+	transcriptTags = flag.String("transcripttag", "", "comma-separated list of transcript struct tag; if you want to transcript swagger etc tag to new JSON struct")
 )
 
 // Usage is a replacement usage function for the flags package.
@@ -73,7 +74,17 @@ func main() {
 		flag.Usage()
 	}
 
-	bu, err := jwg.Parse(pInfo, typeInfos)
+	var transcriptTagNames []string
+	{
+		for _, str := range strings.Split(*transcriptTags, ",") {
+			if str == "" {
+				continue
+			}
+			transcriptTagNames = append(transcriptTagNames, str)
+		}
+	}
+
+	bu, err := jwg.Parse(pInfo, typeInfos, transcriptTagNames)
 	if err != nil {
 		log.Fatal(err)
 	}
