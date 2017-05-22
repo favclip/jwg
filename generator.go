@@ -48,7 +48,7 @@ type BuildTag struct {
 
 	Name      string
 	Ignore    bool // e.g. Secret string `json:"-"`
-	DoNotEmit bool // e.g. Field int `json:",omitempty"`
+	DoNotOmit bool // e.g. Field int, true: `json:",shouldomit"` false: `json:",omitempty"`
 	String    bool // e.g. Int64String int64 `json:",string"`
 }
 
@@ -175,6 +175,7 @@ func (b *BuildSource) parseField(st *BuildStruct, typeInfo *genbase.TypeInfo, fi
 			if idx := strings.Index(jsonTag, ","); idx == -1 {
 				tag.Name = jsonTag
 			} else {
+				omissonConfigured := false
 				for idx != -1 || jsonTag != "" {
 					value := jsonTag
 					if idx != -1 {
@@ -185,8 +186,12 @@ func (b *BuildSource) parseField(st *BuildStruct, typeInfo *genbase.TypeInfo, fi
 					}
 					idx = strings.Index(jsonTag, ",")
 
-					if value == "omitempty" {
-						tag.DoNotEmit = true
+					if value == "omitempty" && !omissonConfigured {
+						tag.DoNotOmit = false
+						omissonConfigured = true
+					} else if value == "shouldemit" && !omissonConfigured {
+						tag.DoNotOmit = true
+						omissonConfigured = true
 					} else if value == "string" {
 						tag.String = true
 					} else if value != "" {
@@ -799,7 +804,9 @@ func (f *BuildField) IsPtrArrayPtr() bool {
 // TagString build tag string.
 func (tag *BuildTag) TagString() string {
 	result := tag.Name
-	result += ",omitempty"
+	if !tag.DoNotOmit {
+		result += ",omitempty"
+	}
 	if tag.String { // TODO add special support for int64
 		result += ",string"
 	}
