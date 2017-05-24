@@ -13,12 +13,19 @@ import (
 // ErrInvalidTranscriptTags means invalid transcriptTag included.
 var ErrInvalidTranscriptTags = errors.New("do not contains json tag in transcriptTagNames")
 
+// ParseOptions means options to Parse function.
+type ParseOptions struct {
+	TranscriptTagNames []string
+	NoOmitempty        bool
+}
+
 // BuildSource represents source code of assembling..
 type BuildSource struct {
 	g                  *genbase.Generator
 	pkg                *genbase.PackageInfo
 	typeInfos          genbase.TypeInfos
 	transcriptTagNames []string // e.g. swagger etc... copy struct tag to *JSON struct
+	noOmitempty        bool
 
 	Structs []*BuildStruct
 }
@@ -46,25 +53,30 @@ type BuildField struct {
 type BuildTag struct {
 	field *BuildField
 
-	Name      string
-	Ignore    bool // e.g. Secret string `json:"-"`
-	DoNotEmit bool // e.g. Field int `json:",omitempty"`
-	String    bool // e.g. Int64String int64 `json:",string"`
+	Name       string
+	Ignore     bool // e.g. Secret string `json:"-"`
+	OmitEmpty  bool // e.g. Field int `json:",omitempty"`
+	ShouldEmit bool // e.g. Field int `json:",shouldemit"` shouldemit is not official supported tag.
+	String     bool // e.g. Int64String int64 `json:",string"`
 }
 
 // Parse construct *BuildSource from package & type information.
-func Parse(pkg *genbase.PackageInfo, typeInfos genbase.TypeInfos, transcriptTagNames []string) (*BuildSource, error) {
-	for _, tagName := range transcriptTagNames {
-		if tagName == "json" {
-			return nil, ErrInvalidTranscriptTags
-		}
+func Parse(pkg *genbase.PackageInfo, typeInfos genbase.TypeInfos, opts *ParseOptions) (*BuildSource, error) {
+	bu := &BuildSource{
+		g:         genbase.NewGenerator(pkg),
+		pkg:       pkg,
+		typeInfos: typeInfos,
 	}
 
-	bu := &BuildSource{
-		g:                  genbase.NewGenerator(pkg),
-		pkg:                pkg,
-		typeInfos:          typeInfos,
-		transcriptTagNames: transcriptTagNames,
+	if opts != nil {
+		for _, tagName := range opts.TranscriptTagNames {
+			if tagName == "json" {
+				return nil, ErrInvalidTranscriptTags
+			}
+		}
+
+		bu.transcriptTagNames = opts.TranscriptTagNames
+		bu.noOmitempty = opts.NoOmitempty
 	}
 
 	bu.g.AddImport("encoding/json", "")
@@ -186,7 +198,9 @@ func (b *BuildSource) parseField(st *BuildStruct, typeInfo *genbase.TypeInfo, fi
 					idx = strings.Index(jsonTag, ",")
 
 					if value == "omitempty" {
-						tag.DoNotEmit = true
+						tag.OmitEmpty = true
+					} else if value == "shouldemit" {
+						tag.ShouldEmit = true
 					} else if value == "string" {
 						tag.String = true
 					} else if value != "" {
@@ -799,7 +813,15 @@ func (f *BuildField) IsPtrArrayPtr() bool {
 // TagString build tag string.
 func (tag *BuildTag) TagString() string {
 	result := tag.Name
-	result += ",omitempty"
+	if tag.field.parent.parent.noOmitempty {
+		if tag.OmitEmpty {
+			result += ",omitempty"
+		}
+	} else {
+		if tag.OmitEmpty || !tag.ShouldEmit {
+			result += ",omitempty"
+		}
+	}
 	if tag.String { // TODO add special support for int64
 		result += ",string"
 	}

@@ -19,6 +19,7 @@ var (
 	typeNames      = flag.String("type", "", "comma-separated list of type names; must be set")
 	output         = flag.String("output", "", "output file name; default srcdir/<type>_string.go")
 	transcriptTags = flag.String("transcripttag", "", "comma-separated list of transcript struct tag; if you want to transcript swagger etc tag to new JSON struct")
+	noOmitempty    = flag.Bool("noOmitempty", false, "don't add omitempt tag to each field")
 )
 
 // Usage is a replacement usage function for the flags package.
@@ -84,7 +85,10 @@ func main() {
 		}
 	}
 
-	bu, err := jwg.Parse(pInfo, typeInfos, transcriptTagNames)
+	bu, err := jwg.Parse(pInfo, typeInfos, &jwg.ParseOptions{
+		TranscriptTagNames: transcriptTagNames,
+		NoOmitempty:        *noOmitempty,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
