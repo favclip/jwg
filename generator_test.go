@@ -54,7 +54,7 @@ func TestGeneratorParsePackageFiles(t *testing.T) {
 
 func TestGeneratorGenerate(t *testing.T) {
 
-	testCase := []string{"a", "b", "c", "g", "h", "l", "n"}
+	testCase := []string{"a", "b", "c", "g", "h", "l", "n", "t"}
 	for _, postFix := range testCase {
 		p := &genbase.Parser{}
 		pInfo, err := p.ParsePackageDir("./misc/fixture/" + postFix)
@@ -66,6 +66,7 @@ func TestGeneratorGenerate(t *testing.T) {
 		var typeNames []string
 		var transcriptTags []string
 		var noOmitempty bool
+		var noOmitemptyFieldTypes []string
 		switch postFix {
 		case "g":
 			args = []string{"-type", "Sample,Inner", "-output", "misc/fixture/" + postFix + "/model_json.go", "misc/fixture/" + postFix}
@@ -78,14 +79,19 @@ func TestGeneratorGenerate(t *testing.T) {
 			args = []string{"-type", "Sample", "-output", "misc/fixture/" + postFix + "/model_json.go", "-noOmitempty", "misc/fixture/" + postFix}
 			typeNames = []string{"Sample"}
 			noOmitempty = true
+		case "t":
+			args = []string{"-type", "Sample", "-output", "misc/fixture/" + postFix + "/model_json.go", "-noOmitemptyFieldType=bool,int", "misc/fixture/" + postFix}
+			typeNames = []string{"Sample"}
+			noOmitemptyFieldTypes = []string{"bool", "int"}
 		default:
 			args = []string{"-type", "Sample", "-output", "misc/fixture/" + postFix + "/model_json.go", "misc/fixture/" + postFix}
 			typeNames = []string{"Sample"}
 		}
 
 		bu, err := Parse(pInfo, pInfo.CollectTypeInfos(typeNames), &ParseOptions{
-			TranscriptTagNames: transcriptTags,
-			NoOmitempty:        noOmitempty,
+			TranscriptTagNames:    transcriptTags,
+			NoOmitempty:           noOmitempty,
+			NoOmitemptyFieldTypes: noOmitemptyFieldTypes,
 		})
 		if err != nil {
 			t.Log(err)

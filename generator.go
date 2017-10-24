@@ -15,17 +15,19 @@ var ErrInvalidTranscriptTags = errors.New("do not contains json tag in transcrip
 
 // ParseOptions means options to Parse function.
 type ParseOptions struct {
-	TranscriptTagNames []string
-	NoOmitempty        bool
+	TranscriptTagNames    []string
+	NoOmitempty           bool
+	NoOmitemptyFieldTypes []string
 }
 
 // BuildSource represents source code of assembling..
 type BuildSource struct {
-	g                  *genbase.Generator
-	pkg                *genbase.PackageInfo
-	typeInfos          genbase.TypeInfos
-	transcriptTagNames []string // e.g. swagger etc... copy struct tag to *JSON struct
-	noOmitempty        bool
+	g                     *genbase.Generator
+	pkg                   *genbase.PackageInfo
+	typeInfos             genbase.TypeInfos
+	transcriptTagNames    []string // e.g. swagger etc... copy struct tag to *JSON struct
+	noOmitempty           bool
+	noOmitemptyFieldTypes []string
 
 	Structs []*BuildStruct
 }
@@ -77,6 +79,7 @@ func Parse(pkg *genbase.PackageInfo, typeInfos genbase.TypeInfos, opts *ParseOpt
 
 		bu.transcriptTagNames = opts.TranscriptTagNames
 		bu.noOmitempty = opts.NoOmitempty
+		bu.noOmitemptyFieldTypes = opts.NoOmitemptyFieldTypes
 	}
 
 	bu.g.AddImport("encoding/json", "")
@@ -813,7 +816,7 @@ func (f *BuildField) IsPtrArrayPtr() bool {
 // TagString build tag string.
 func (tag *BuildTag) TagString() string {
 	result := tag.Name
-	if tag.field.parent.parent.noOmitempty {
+	if tag.isNoomitempty() {
 		if tag.OmitEmpty {
 			result += ",omitempty"
 		}
@@ -826,4 +829,24 @@ func (tag *BuildTag) TagString() string {
 		result += ",string"
 	}
 	return "json:\"" + result + "\""
+}
+
+// isNoomitempty returns whether to suppress omitempty tag
+func (tag *BuildTag) isNoomitempty() bool {
+	if tag.field.parent.parent.noOmitempty {
+		return true
+	}
+
+	typeName, err := genbase.ExprToTypeName(tag.field.fieldInfo.Type)
+	if err != nil {
+		return false
+	}
+
+	for _, t := range tag.field.parent.parent.noOmitemptyFieldTypes {
+		if t == typeName {
+			return true
+		}
+	}
+
+	return false
 }
