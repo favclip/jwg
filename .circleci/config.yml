@@ -1,0 +1,29 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/favclip/jwg
+    docker:
+      - image: google/cloud-sdk:178.0.0
+        environment:
+          GOPATH: /go
+          GOLANG_VERSION: 1.9.2
+    steps:
+      - run:
+          name: PATH update
+          command: |
+            echo "export PATH=\$PATH:/go/bin:/usr/local/go/bin" >> $BASH_ENV
+            cat $BASH_ENV
+      - run:
+          name: install go binary
+          command: |
+            echo $PATH
+            /usr/bin/curl -o go.tar.gz https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+            tar -zxf go.tar.gz && \
+            mv go /usr/local && \
+            rm go.tar.gz
+
+      - checkout
+
+      - run: go get -u github.com/golang/dep/cmd/dep
+      - run: ./setup.sh
+      - run: ./test.sh

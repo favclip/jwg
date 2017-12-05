@@ -1,3 +1,11 @@
+dep ensure
+
+# build tools
+rm -rf build-cmd/
+mkdir build-cmd
+go build -o build-cmd/goimports   ./vendor/golang.org/x/tools/cmd/goimports
+go build -o build-cmd/golint      ./vendor/github.com/golang/lint/golint
+
 go run cmd/jwg/main.go -type Sample -output misc/fixture/a/model_json.go misc/fixture/a
 go run cmd/jwg/main.go -type Sample -output misc/fixture/b/model_json.go misc/fixture/b
 go run cmd/jwg/main.go -type Sample -output misc/fixture/c/model_json.go misc/fixture/c
