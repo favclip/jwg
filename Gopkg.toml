@@ -5,7 +5,3 @@ required = [
   "golang.org/x/tools/cmd/goimports",
   "github.com/golang/lint/golint"
 ]
-
-[[constraint]]
-  name = "github.com/favclip/genbase"
-  version = "1.0.0"
