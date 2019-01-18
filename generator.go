@@ -691,8 +691,10 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	// generate method for modifing and marshaling
 	g.Printf(`
 			// Add specified property to %[1]sJSONBuilder.
-			func (b *%[1]sJSONBuilder) Add(info *%[1]sPropertyInfo) *%[1]sJSONBuilder {
-				b._properties[info.name] = info
+			func (b *%[1]sJSONBuilder) Add(infos ...*%[1]sPropertyInfo) *%[1]sJSONBuilder {
+				for _, info := range infos {
+					b._properties[info.name] = info
+				}
 				return b
 			}
 
@@ -720,8 +722,10 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 			}
 
 			// Remove specified property to %[1]sJSONBuilder.
-			func (b *%[1]sJSONBuilder) Remove(info *%[1]sPropertyInfo) *%[1]sJSONBuilder {
-				delete(b._properties, info.name)
+			func (b *%[1]sJSONBuilder) Remove(infos ...*%[1]sPropertyInfo) *%[1]sJSONBuilder {
+				for _, info := range infos {
+					delete(b._properties, info.name)
+				}
 				return b
 			}
 

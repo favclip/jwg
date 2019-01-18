@@ -137,8 +137,10 @@ func (b *SampleJSONBuilder) AddAll() *SampleJSONBuilder {
 }
 
 // Add specified property to SampleJSONBuilder.
-func (b *SampleJSONBuilder) Add(info *SamplePropertyInfo) *SampleJSONBuilder {
-	b._properties[info.name] = info
+func (b *SampleJSONBuilder) Add(infos ...*SamplePropertyInfo) *SampleJSONBuilder {
+	for _, info := range infos {
+		b._properties[info.name] = info
+	}
 	return b
 }
 
@@ -167,8 +169,10 @@ func (b *SampleJSONBuilder) AddByNames(names ...string) *SampleJSONBuilder {
 }
 
 // Remove specified property to SampleJSONBuilder.
-func (b *SampleJSONBuilder) Remove(info *SamplePropertyInfo) *SampleJSONBuilder {
-	delete(b._properties, info.name)
+func (b *SampleJSONBuilder) Remove(infos ...*SamplePropertyInfo) *SampleJSONBuilder {
+	for _, info := range infos {
+		delete(b._properties, info.name)
+	}
 	return b
 }
 
