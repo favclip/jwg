@@ -26,27 +26,43 @@ type FooPropertyDecoder func(src *FooJSON, dest *Foo) error
 
 // FooPropertyInfo stores property information.
 type FooPropertyInfo struct {
-	name    string
-	Encoder FooPropertyEncoder
-	Decoder FooPropertyDecoder
+	fieldName string
+	jsonName  string
+	Encoder   FooPropertyEncoder
+	Decoder   FooPropertyDecoder
+}
+
+// FieldName returns struct field name of property.
+func (info *FooPropertyInfo) FieldName() string {
+	return info.fieldName
+}
+
+// JSONName returns json field name of property.
+func (info *FooPropertyInfo) JSONName() string {
+	return info.jsonName
 }
 
 // FooJSONBuilder convert between Foo to FooJSON mutually.
 type FooJSONBuilder struct {
-	_properties map[string]*FooPropertyInfo
-	Tmp         *FooPropertyInfo
-	Bar         *FooPropertyInfo
-	Buzz        *FooPropertyInfo
-	Hoge        *FooPropertyInfo
-	Fuga        *FooPropertyInfo
+	_properties        map[string]*FooPropertyInfo
+	_jsonPropertyMap   map[string]*FooPropertyInfo
+	_structPropertyMap map[string]*FooPropertyInfo
+	Tmp                *FooPropertyInfo
+	Bar                *FooPropertyInfo
+	Buzz               *FooPropertyInfo
+	Hoge               *FooPropertyInfo
+	Fuga               *FooPropertyInfo
 }
 
 // NewFooJSONBuilder make new FooJSONBuilder.
 func NewFooJSONBuilder() *FooJSONBuilder {
-	return &FooJSONBuilder{
-		_properties: map[string]*FooPropertyInfo{},
+	jb := &FooJSONBuilder{
+		_properties:        map[string]*FooPropertyInfo{},
+		_jsonPropertyMap:   map[string]*FooPropertyInfo{},
+		_structPropertyMap: map[string]*FooPropertyInfo{},
 		Tmp: &FooPropertyInfo{
-			name: "Tmp",
+			fieldName: "Tmp",
+			jsonName:  "tmp",
 			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
@@ -63,7 +79,8 @@ func NewFooJSONBuilder() *FooJSONBuilder {
 			},
 		},
 		Bar: &FooPropertyInfo{
-			name: "Bar",
+			fieldName: "Bar",
+			jsonName:  "",
 			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
@@ -80,7 +97,8 @@ func NewFooJSONBuilder() *FooJSONBuilder {
 			},
 		},
 		Buzz: &FooPropertyInfo{
-			name: "Buzz",
+			fieldName: "Buzz",
+			jsonName:  "",
 			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
@@ -97,7 +115,8 @@ func NewFooJSONBuilder() *FooJSONBuilder {
 			},
 		},
 		Hoge: &FooPropertyInfo{
-			name: "Hoge",
+			fieldName: "Hoge",
+			jsonName:  "",
 			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
@@ -122,7 +141,8 @@ func NewFooJSONBuilder() *FooJSONBuilder {
 			},
 		},
 		Fuga: &FooPropertyInfo{
-			name: "Fuga",
+			fieldName: "Fuga",
+			jsonName:  "",
 			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
@@ -151,6 +171,28 @@ func NewFooJSONBuilder() *FooJSONBuilder {
 			},
 		},
 	}
+	jb._structPropertyMap["Tmp"] = jb.Tmp
+	jb._jsonPropertyMap["tmp"] = jb.Tmp
+	jb._structPropertyMap["Bar"] = jb.Bar
+	jb._jsonPropertyMap[""] = jb.Bar
+	jb._structPropertyMap["Buzz"] = jb.Buzz
+	jb._jsonPropertyMap[""] = jb.Buzz
+	jb._structPropertyMap["Hoge"] = jb.Hoge
+	jb._jsonPropertyMap[""] = jb.Hoge
+	jb._structPropertyMap["Fuga"] = jb.Fuga
+	jb._jsonPropertyMap[""] = jb.Fuga
+	return jb
+}
+
+// Properties returns all properties on FooJSONBuilder.
+func (b *FooJSONBuilder) Properties() []*FooPropertyInfo {
+	return []*FooPropertyInfo{
+		b.Tmp,
+		b.Bar,
+		b.Buzz,
+		b.Hoge,
+		b.Fuga,
+	}
 }
 
 // AddAll adds all property to FooJSONBuilder.
@@ -165,13 +207,62 @@ func (b *FooJSONBuilder) AddAll() *FooJSONBuilder {
 
 // Add specified property to FooJSONBuilder.
 func (b *FooJSONBuilder) Add(info *FooPropertyInfo) *FooJSONBuilder {
-	b._properties[info.name] = info
+	b._properties[info.fieldName] = info
+	return b
+}
+
+// AddByJSONNames add properties to FooJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *FooJSONBuilder) AddByJSONNames(names ...string) *FooJSONBuilder {
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
+	return b
+}
+
+// AddByNames add properties to FooJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *FooJSONBuilder) AddByNames(names ...string) *FooJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
 	return b
 }
 
 // Remove specified property to FooJSONBuilder.
 func (b *FooJSONBuilder) Remove(info *FooPropertyInfo) *FooJSONBuilder {
-	delete(b._properties, info.name)
+	delete(b._properties, info.fieldName)
+	return b
+}
+
+// RemoveByJSONNames remove properties to FooJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *FooJSONBuilder) RemoveByJSONNames(names ...string) *FooJSONBuilder {
+
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
+	return b
+}
+
+// RemoveByNames remove properties to FooJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *FooJSONBuilder) RemoveByNames(names ...string) *FooJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
 	return b
 }
 
@@ -264,23 +355,39 @@ type HogePropertyDecoder func(src *HogeJSON, dest *Hoge) error
 
 // HogePropertyInfo stores property information.
 type HogePropertyInfo struct {
-	name    string
-	Encoder HogePropertyEncoder
-	Decoder HogePropertyDecoder
+	fieldName string
+	jsonName  string
+	Encoder   HogePropertyEncoder
+	Decoder   HogePropertyDecoder
+}
+
+// FieldName returns struct field name of property.
+func (info *HogePropertyInfo) FieldName() string {
+	return info.fieldName
+}
+
+// JSONName returns json field name of property.
+func (info *HogePropertyInfo) JSONName() string {
+	return info.jsonName
 }
 
 // HogeJSONBuilder convert between Hoge to HogeJSON mutually.
 type HogeJSONBuilder struct {
-	_properties map[string]*HogePropertyInfo
-	Hoge1       *HogePropertyInfo
+	_properties        map[string]*HogePropertyInfo
+	_jsonPropertyMap   map[string]*HogePropertyInfo
+	_structPropertyMap map[string]*HogePropertyInfo
+	Hoge1              *HogePropertyInfo
 }
 
 // NewHogeJSONBuilder make new HogeJSONBuilder.
 func NewHogeJSONBuilder() *HogeJSONBuilder {
-	return &HogeJSONBuilder{
-		_properties: map[string]*HogePropertyInfo{},
+	jb := &HogeJSONBuilder{
+		_properties:        map[string]*HogePropertyInfo{},
+		_jsonPropertyMap:   map[string]*HogePropertyInfo{},
+		_structPropertyMap: map[string]*HogePropertyInfo{},
 		Hoge1: &HogePropertyInfo{
-			name: "Hoge1",
+			fieldName: "Hoge1",
+			jsonName:  "hoge1",
 			Encoder: func(src *Hoge, dest *HogeJSON) error {
 				if src == nil {
 					return nil
@@ -297,6 +404,16 @@ func NewHogeJSONBuilder() *HogeJSONBuilder {
 			},
 		},
 	}
+	jb._structPropertyMap["Hoge1"] = jb.Hoge1
+	jb._jsonPropertyMap["hoge1"] = jb.Hoge1
+	return jb
+}
+
+// Properties returns all properties on HogeJSONBuilder.
+func (b *HogeJSONBuilder) Properties() []*HogePropertyInfo {
+	return []*HogePropertyInfo{
+		b.Hoge1,
+	}
 }
 
 // AddAll adds all property to HogeJSONBuilder.
@@ -307,13 +424,62 @@ func (b *HogeJSONBuilder) AddAll() *HogeJSONBuilder {
 
 // Add specified property to HogeJSONBuilder.
 func (b *HogeJSONBuilder) Add(info *HogePropertyInfo) *HogeJSONBuilder {
-	b._properties[info.name] = info
+	b._properties[info.fieldName] = info
+	return b
+}
+
+// AddByJSONNames add properties to HogeJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *HogeJSONBuilder) AddByJSONNames(names ...string) *HogeJSONBuilder {
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
+	return b
+}
+
+// AddByNames add properties to HogeJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *HogeJSONBuilder) AddByNames(names ...string) *HogeJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
 	return b
 }
 
 // Remove specified property to HogeJSONBuilder.
 func (b *HogeJSONBuilder) Remove(info *HogePropertyInfo) *HogeJSONBuilder {
-	delete(b._properties, info.name)
+	delete(b._properties, info.fieldName)
+	return b
+}
+
+// RemoveByJSONNames remove properties to HogeJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *HogeJSONBuilder) RemoveByJSONNames(names ...string) *HogeJSONBuilder {
+
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
+	return b
+}
+
+// RemoveByNames remove properties to HogeJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *HogeJSONBuilder) RemoveByNames(names ...string) *HogeJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
 	return b
 }
 
@@ -406,23 +572,39 @@ type FugaPropertyDecoder func(src *FugaJSON, dest *Fuga) error
 
 // FugaPropertyInfo stores property information.
 type FugaPropertyInfo struct {
-	name    string
-	Encoder FugaPropertyEncoder
-	Decoder FugaPropertyDecoder
+	fieldName string
+	jsonName  string
+	Encoder   FugaPropertyEncoder
+	Decoder   FugaPropertyDecoder
+}
+
+// FieldName returns struct field name of property.
+func (info *FugaPropertyInfo) FieldName() string {
+	return info.fieldName
+}
+
+// JSONName returns json field name of property.
+func (info *FugaPropertyInfo) JSONName() string {
+	return info.jsonName
 }
 
 // FugaJSONBuilder convert between Fuga to FugaJSON mutually.
 type FugaJSONBuilder struct {
-	_properties map[string]*FugaPropertyInfo
-	Fuga1       *FugaPropertyInfo
+	_properties        map[string]*FugaPropertyInfo
+	_jsonPropertyMap   map[string]*FugaPropertyInfo
+	_structPropertyMap map[string]*FugaPropertyInfo
+	Fuga1              *FugaPropertyInfo
 }
 
 // NewFugaJSONBuilder make new FugaJSONBuilder.
 func NewFugaJSONBuilder() *FugaJSONBuilder {
-	return &FugaJSONBuilder{
-		_properties: map[string]*FugaPropertyInfo{},
+	jb := &FugaJSONBuilder{
+		_properties:        map[string]*FugaPropertyInfo{},
+		_jsonPropertyMap:   map[string]*FugaPropertyInfo{},
+		_structPropertyMap: map[string]*FugaPropertyInfo{},
 		Fuga1: &FugaPropertyInfo{
-			name: "Fuga1",
+			fieldName: "Fuga1",
+			jsonName:  "fuga1",
 			Encoder: func(src *Fuga, dest *FugaJSON) error {
 				if src == nil {
 					return nil
@@ -439,6 +621,16 @@ func NewFugaJSONBuilder() *FugaJSONBuilder {
 			},
 		},
 	}
+	jb._structPropertyMap["Fuga1"] = jb.Fuga1
+	jb._jsonPropertyMap["fuga1"] = jb.Fuga1
+	return jb
+}
+
+// Properties returns all properties on FugaJSONBuilder.
+func (b *FugaJSONBuilder) Properties() []*FugaPropertyInfo {
+	return []*FugaPropertyInfo{
+		b.Fuga1,
+	}
 }
 
 // AddAll adds all property to FugaJSONBuilder.
@@ -449,13 +641,62 @@ func (b *FugaJSONBuilder) AddAll() *FugaJSONBuilder {
 
 // Add specified property to FugaJSONBuilder.
 func (b *FugaJSONBuilder) Add(info *FugaPropertyInfo) *FugaJSONBuilder {
-	b._properties[info.name] = info
+	b._properties[info.fieldName] = info
+	return b
+}
+
+// AddByJSONNames add properties to FugaJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *FugaJSONBuilder) AddByJSONNames(names ...string) *FugaJSONBuilder {
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
+	return b
+}
+
+// AddByNames add properties to FugaJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *FugaJSONBuilder) AddByNames(names ...string) *FugaJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
 	return b
 }
 
 // Remove specified property to FugaJSONBuilder.
 func (b *FugaJSONBuilder) Remove(info *FugaPropertyInfo) *FugaJSONBuilder {
-	delete(b._properties, info.name)
+	delete(b._properties, info.fieldName)
+	return b
+}
+
+// RemoveByJSONNames remove properties to FugaJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *FugaJSONBuilder) RemoveByJSONNames(names ...string) *FugaJSONBuilder {
+
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
+	return b
+}
+
+// RemoveByNames remove properties to FugaJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *FugaJSONBuilder) RemoveByNames(names ...string) *FugaJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
 	return b
 }
 

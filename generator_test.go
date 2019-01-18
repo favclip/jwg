@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/favclip/genbase"
+	"github.com/pmezard/go-difflib/difflib"
 )
 
 func TestGeneratorParsePackageDir(t *testing.T) {
@@ -108,8 +109,16 @@ func TestGeneratorGenerate(t *testing.T) {
 			t.Fail()
 		}
 		if string(src) != string(expected) {
-			t.Log("not emit expected code in "+postFix+", actual\n", string(src))
-			t.Fail()
+			diff := difflib.UnifiedDiff{
+				A:       difflib.SplitLines(string(expected)),
+				B:       difflib.SplitLines(string(src)),
+				Context: 5,
+			}
+			d, err := difflib.GetUnifiedDiffString(diff)
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Fatal(d)
 		}
 	}
 }

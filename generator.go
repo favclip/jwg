@@ -289,9 +289,20 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	g.Printf(`
 			// %[1]sPropertyInfo stores property information.
 			type %[1]sPropertyInfo struct {
-				name	string
+				fieldName string
+				jsonName  string
 				Encoder %[1]sPropertyEncoder
 				Decoder %[1]sPropertyDecoder
+			}
+
+			// FieldName returns struct field name of property.
+			func (info *%[1]sPropertyInfo) FieldName() string {
+				return info.fieldName
+			}
+
+			// JSONName returns json field name of property.
+			func (info *%[1]sPropertyInfo) JSONName() string {
+				return info.jsonName
 			}
 
 			`, st.Name())
@@ -328,7 +339,8 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 					return err
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[4]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -356,14 +368,15 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name, typeName)
+					`, st.Name(), field.Name, typeName, field.Tag.Name)
 			} else if field.WithJWG() {
 				typeName, err := genbase.ExprToBaseTypeName(field.fieldInfo.Type)
 				if err != nil {
 					return err
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[4]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -387,10 +400,11 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name, typeName)
+					`, st.Name(), field.Name, typeName, field.Tag.Name)
 			} else {
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[3]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -406,7 +420,7 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name)
+					`, st.Name(), field.Name, field.Tag.Name)
 			}
 		} else {
 			if field.WithJWG() && field.IsPtrArrayPtr() {
@@ -415,7 +429,8 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 					return err
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[4]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -450,14 +465,15 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name, typeName)
+					`, st.Name(), field.Name, typeName, field.Tag.Name)
 			} else if field.WithJWG() && field.IsPtrArray() {
 				typeName, err := genbase.ExprToBaseTypeName(field.fieldInfo.Type)
 				if err != nil {
 					return err
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[4]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -494,14 +510,15 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name, typeName)
+					`, st.Name(), field.Name, typeName, field.Tag.Name)
 			} else if field.WithJWG() && field.IsArrayPtr() {
 				typeName, err := genbase.ExprToBaseTypeName(field.fieldInfo.Type)
 				if err != nil {
 					return err
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[4]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -532,14 +549,15 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name, typeName)
+					`, st.Name(), field.Name, typeName, field.Tag.Name)
 			} else if field.WithJWG() && field.IsArray() {
 				typeName, err := genbase.ExprToBaseTypeName(field.fieldInfo.Type)
 				if err != nil {
 					return err
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[4]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -572,14 +590,15 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name, typeName)
+					`, st.Name(), field.Name, typeName, field.Tag.Name)
 			} else if field.WithJWG() && field.IsPtr() {
 				typeName, err := genbase.ExprToBaseTypeName(field.fieldInfo.Type)
 				if err != nil {
 					return err
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[4]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -607,14 +626,15 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name, typeName)
+					`, st.Name(), field.Name, typeName, field.Tag.Name)
 			} else if field.WithJWG() {
 				typeName, err := genbase.ExprToBaseTypeName(field.fieldInfo.Type)
 				if err != nil {
 					return err
 				}
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[4]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -638,10 +658,11 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name, typeName)
+					`, st.Name(), field.Name, typeName, field.Tag.Name)
 			} else {
 				g.Printf(`%[2]s: &%[1]sPropertyInfo{
-						name: "%[2]s",
+						fieldName: "%[2]s",
+						jsonName: "%[3]s",
 						Encoder: func(src *%[1]s, dest *%[1]sJSON) error {
 							if src == nil {
 								return nil
@@ -657,7 +678,7 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 							return nil
 						},
 					},
-					`, st.Name(), field.Name)
+					`, st.Name(), field.Name, field.Tag.Name)
 			}
 		}
 	}
@@ -671,6 +692,22 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	}
 	g.Printf("return jb")
 	g.Printf("}\n\n")
+
+	// generate Properties method
+	g.Printf("// Properties returns all properties on %[1]sJSONBuilder.\n", st.Name())
+	g.Printf("func (b *%[1]sJSONBuilder) Properties() []*%[1]sPropertyInfo {\n", st.Name())
+	g.Printf("return []*%[1]sPropertyInfo {\n", st.Name())
+	for _, field := range st.Fields {
+		if field.Tag.Ignore {
+			continue
+		}
+		if field.Name != "" {
+			g.Printf("b.%[1]s,\n", field.Name)
+		} else {
+			// TODO add support for embed other struct
+		}
+	}
+	g.Printf("}\n}\n\n")
 
 	// generate AddAll method
 	g.Printf("// AddAll adds all property to %[1]sJSONBuilder.\n", st.Name())
@@ -692,7 +729,7 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	g.Printf(`
 			// Add specified property to %[1]sJSONBuilder.
 			func (b *%[1]sJSONBuilder) Add(info *%[1]sPropertyInfo) *%[1]sJSONBuilder {
-				b._properties[info.name] = info
+				b._properties[info.fieldName] = info
 				return b
 			}
 
@@ -703,7 +740,7 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 					if info == nil {
 						continue
 					}
-					b._properties[info.name] = info
+					b._properties[info.fieldName] = info
 				}
 				return b
 			}
@@ -714,14 +751,14 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 					if info == nil {
 						continue
 					}
-					b._properties[info.name] = info
+					b._properties[info.fieldName] = info
 				}
 				return b
 			}
 
 			// Remove specified property to %[1]sJSONBuilder.
 			func (b *%[1]sJSONBuilder) Remove(info *%[1]sPropertyInfo) *%[1]sJSONBuilder {
-				delete(b._properties, info.name)
+				delete(b._properties, info.fieldName)
 				return b
 			}
 
@@ -733,7 +770,7 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 					if info == nil {
 						continue
 					}
-					delete(b._properties, info.name)
+					delete(b._properties, info.fieldName)
 				}
 				return b
 			}
@@ -744,7 +781,7 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 					if info == nil {
 						continue
 					}
-					delete(b._properties, info.name)
+					delete(b._properties, info.fieldName)
 				}
 				return b
 			}

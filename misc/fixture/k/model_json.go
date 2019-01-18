@@ -24,23 +24,39 @@ type FooPropertyDecoder func(src *FooJSON, dest *Foo) error
 
 // FooPropertyInfo stores property information.
 type FooPropertyInfo struct {
-	name    string
-	Encoder FooPropertyEncoder
-	Decoder FooPropertyDecoder
+	fieldName string
+	jsonName  string
+	Encoder   FooPropertyEncoder
+	Decoder   FooPropertyDecoder
+}
+
+// FieldName returns struct field name of property.
+func (info *FooPropertyInfo) FieldName() string {
+	return info.fieldName
+}
+
+// JSONName returns json field name of property.
+func (info *FooPropertyInfo) JSONName() string {
+	return info.jsonName
 }
 
 // FooJSONBuilder convert between Foo to FooJSON mutually.
 type FooJSONBuilder struct {
-	_properties map[string]*FooPropertyInfo
-	Test        *FooPropertyInfo
+	_properties        map[string]*FooPropertyInfo
+	_jsonPropertyMap   map[string]*FooPropertyInfo
+	_structPropertyMap map[string]*FooPropertyInfo
+	Test               *FooPropertyInfo
 }
 
 // NewFooJSONBuilder make new FooJSONBuilder.
 func NewFooJSONBuilder() *FooJSONBuilder {
-	return &FooJSONBuilder{
-		_properties: map[string]*FooPropertyInfo{},
+	jb := &FooJSONBuilder{
+		_properties:        map[string]*FooPropertyInfo{},
+		_jsonPropertyMap:   map[string]*FooPropertyInfo{},
+		_structPropertyMap: map[string]*FooPropertyInfo{},
 		Test: &FooPropertyInfo{
-			name: "Test",
+			fieldName: "Test",
+			jsonName:  "test",
 			Encoder: func(src *Foo, dest *FooJSON) error {
 				if src == nil {
 					return nil
@@ -57,6 +73,16 @@ func NewFooJSONBuilder() *FooJSONBuilder {
 			},
 		},
 	}
+	jb._structPropertyMap["Test"] = jb.Test
+	jb._jsonPropertyMap["test"] = jb.Test
+	return jb
+}
+
+// Properties returns all properties on FooJSONBuilder.
+func (b *FooJSONBuilder) Properties() []*FooPropertyInfo {
+	return []*FooPropertyInfo{
+		b.Test,
+	}
 }
 
 // AddAll adds all property to FooJSONBuilder.
@@ -67,13 +93,62 @@ func (b *FooJSONBuilder) AddAll() *FooJSONBuilder {
 
 // Add specified property to FooJSONBuilder.
 func (b *FooJSONBuilder) Add(info *FooPropertyInfo) *FooJSONBuilder {
-	b._properties[info.name] = info
+	b._properties[info.fieldName] = info
+	return b
+}
+
+// AddByJSONNames add properties to FooJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *FooJSONBuilder) AddByJSONNames(names ...string) *FooJSONBuilder {
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
+	return b
+}
+
+// AddByNames add properties to FooJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *FooJSONBuilder) AddByNames(names ...string) *FooJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
 	return b
 }
 
 // Remove specified property to FooJSONBuilder.
 func (b *FooJSONBuilder) Remove(info *FooPropertyInfo) *FooJSONBuilder {
-	delete(b._properties, info.name)
+	delete(b._properties, info.fieldName)
+	return b
+}
+
+// RemoveByJSONNames remove properties to FooJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *FooJSONBuilder) RemoveByJSONNames(names ...string) *FooJSONBuilder {
+
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
+	return b
+}
+
+// RemoveByNames remove properties to FooJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *FooJSONBuilder) RemoveByNames(names ...string) *FooJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
 	return b
 }
 
@@ -166,23 +241,39 @@ type BarPropertyDecoder func(src *BarJSON, dest *Bar) error
 
 // BarPropertyInfo stores property information.
 type BarPropertyInfo struct {
-	name    string
-	Encoder BarPropertyEncoder
-	Decoder BarPropertyDecoder
+	fieldName string
+	jsonName  string
+	Encoder   BarPropertyEncoder
+	Decoder   BarPropertyDecoder
+}
+
+// FieldName returns struct field name of property.
+func (info *BarPropertyInfo) FieldName() string {
+	return info.fieldName
+}
+
+// JSONName returns json field name of property.
+func (info *BarPropertyInfo) JSONName() string {
+	return info.jsonName
 }
 
 // BarJSONBuilder convert between Bar to BarJSON mutually.
 type BarJSONBuilder struct {
-	_properties map[string]*BarPropertyInfo
-	Tests       *BarPropertyInfo
+	_properties        map[string]*BarPropertyInfo
+	_jsonPropertyMap   map[string]*BarPropertyInfo
+	_structPropertyMap map[string]*BarPropertyInfo
+	Tests              *BarPropertyInfo
 }
 
 // NewBarJSONBuilder make new BarJSONBuilder.
 func NewBarJSONBuilder() *BarJSONBuilder {
-	return &BarJSONBuilder{
-		_properties: map[string]*BarPropertyInfo{},
+	jb := &BarJSONBuilder{
+		_properties:        map[string]*BarPropertyInfo{},
+		_jsonPropertyMap:   map[string]*BarPropertyInfo{},
+		_structPropertyMap: map[string]*BarPropertyInfo{},
 		Tests: &BarPropertyInfo{
-			name: "Tests",
+			fieldName: "Tests",
+			jsonName:  "tests",
 			Encoder: func(src *Bar, dest *BarJSON) error {
 				if src == nil {
 					return nil
@@ -199,6 +290,16 @@ func NewBarJSONBuilder() *BarJSONBuilder {
 			},
 		},
 	}
+	jb._structPropertyMap["Tests"] = jb.Tests
+	jb._jsonPropertyMap["tests"] = jb.Tests
+	return jb
+}
+
+// Properties returns all properties on BarJSONBuilder.
+func (b *BarJSONBuilder) Properties() []*BarPropertyInfo {
+	return []*BarPropertyInfo{
+		b.Tests,
+	}
 }
 
 // AddAll adds all property to BarJSONBuilder.
@@ -209,13 +310,62 @@ func (b *BarJSONBuilder) AddAll() *BarJSONBuilder {
 
 // Add specified property to BarJSONBuilder.
 func (b *BarJSONBuilder) Add(info *BarPropertyInfo) *BarJSONBuilder {
-	b._properties[info.name] = info
+	b._properties[info.fieldName] = info
+	return b
+}
+
+// AddByJSONNames add properties to BarJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *BarJSONBuilder) AddByJSONNames(names ...string) *BarJSONBuilder {
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
+	return b
+}
+
+// AddByNames add properties to BarJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *BarJSONBuilder) AddByNames(names ...string) *BarJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
 	return b
 }
 
 // Remove specified property to BarJSONBuilder.
 func (b *BarJSONBuilder) Remove(info *BarPropertyInfo) *BarJSONBuilder {
-	delete(b._properties, info.name)
+	delete(b._properties, info.fieldName)
+	return b
+}
+
+// RemoveByJSONNames remove properties to BarJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *BarJSONBuilder) RemoveByJSONNames(names ...string) *BarJSONBuilder {
+
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
+	return b
+}
+
+// RemoveByNames remove properties to BarJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *BarJSONBuilder) RemoveByNames(names ...string) *BarJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
 	return b
 }
 

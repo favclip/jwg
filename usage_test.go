@@ -114,7 +114,7 @@ func TestWithRemoveByNames(t *testing.T) {
 
 	builder := b.NewSampleJSONBuilder()
 	builder.AddAll()
-	builder.RemoveByNames() // ignore empty
+	builder.RemoveByNames()                 // ignore empty
 	builder.RemoveByNames("A", "D", "hoge") // ignore non-exist property
 	json, err := builder.Marshal(src)
 
@@ -135,7 +135,7 @@ func TestWithRemoveByJSONNames(t *testing.T) {
 
 	builder := b.NewSampleJSONBuilder()
 	builder.AddAll()
-	builder.RemoveByJSONNames() // ignore empty
+	builder.RemoveByJSONNames()                    // ignore empty
 	builder.RemoveByJSONNames("foo!", "d", "fuga") // ignore non-exist property
 	json, err := builder.Marshal(src)
 
@@ -173,7 +173,7 @@ func TestWithAddByJSONNames(t *testing.T) {
 	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
 
 	builder := b.NewSampleJSONBuilder()
-	builder.AddByJSONNames() // ignore empty
+	builder.AddByJSONNames()                 // ignore empty
 	builder.AddByJSONNames("b", "d", "hoge") // ignore non-exist property
 	json, err := builder.Marshal(src)
 
@@ -192,7 +192,7 @@ func TestWithAddByNames(t *testing.T) {
 	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
 
 	builder := b.NewSampleJSONBuilder()
-	builder.AddByNames() // ignore empty
+	builder.AddByNames()                 // ignore empty
 	builder.AddByNames("B", "D", "hoge") // ignore non-exist property
 	json, err := builder.Marshal(src)
 

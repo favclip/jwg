@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:13b41b076f2eccfb9c237f683d226ecf66ddcf663e6172c83d8f61317e672bfc"
+  digest = "1:cc1bd35607d54edc6e5420b5952e78d7c115ce1e167b80c8759c79ba7803a0ca"
   name = "github.com/favclip/genbase"
   packages = ["."]
   pruneopts = ""
@@ -10,36 +10,44 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:752f0f77243292dadb5bc9f94ecd04e41358b087af4e140a40b3bc54484f691a"
+  branch = "travis-1.9"
+  digest = "1:d45f5fe0f8bf6cd0bc592502e7e8ec647d769e55387fe326eb624d67282a7d15"
   name = "github.com/golang/lint"
-  packages = ["golint"]
+  packages = [
+    ".",
+    "golint",
+  ]
   pruneopts = ""
-  revision = "06c8688daad7faa9da5a0c2f163a3d14aac986ca"
+  revision = "883fe33ffc4344bad1ecd881f61afd5ec5d80e0a"
+
+[[projects]]
+  digest = "1:256484dbbcd271f9ecebc6795b2df8cad4c458dd0f5fd82a8c2fa0c29f233411"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = ""
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:752f0f77243292dadb5bc9f94ecd04e41358b087af4e140a40b3bc54484f691a"
-  name = "golang.org/x/lint"
-  packages = ["."]
-  pruneopts = ""
-  revision = "06c8688daad7faa9da5a0c2f163a3d14aac986ca"
-
-[[projects]]
-  branch = "master"
-  digest = "1:bb369920f89103d0e82f2bed2cef77030499aff8ad925e9cf05628c46a830404"
+  digest = "1:1c7094a77c36fbbfd5a3da1151ccd6adcdef0bd7e02cca77b7f67ae4f1cbcf0e"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
     "go/ast/astutil",
     "go/gcexportdata",
+    "go/internal/cgo",
     "go/internal/gcimporter",
+    "go/internal/packagesdriver",
+    "go/packages",
     "go/types/typeutil",
     "imports",
     "internal/fastwalk",
+    "internal/gopathwalk",
+    "internal/semver",
   ]
   pruneopts = ""
-  revision = "ded554d0681e0cba3cf074977cdc12e2c0906fe6"
+  revision = "b4b6fe2cb82970f144debbe03ecb71e340b15446"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -47,6 +55,7 @@
   input-imports = [
     "github.com/favclip/genbase",
     "github.com/golang/lint/golint",
+    "github.com/pmezard/go-difflib/difflib",
     "golang.org/x/tools/cmd/goimports",
   ]
   solver-name = "gps-cdcl"

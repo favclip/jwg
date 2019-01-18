@@ -25,24 +25,40 @@ type SampleFPropertyDecoder func(src *SampleFJSON, dest *SampleF) error
 
 // SampleFPropertyInfo stores property information.
 type SampleFPropertyInfo struct {
-	name    string
-	Encoder SampleFPropertyEncoder
-	Decoder SampleFPropertyDecoder
+	fieldName string
+	jsonName  string
+	Encoder   SampleFPropertyEncoder
+	Decoder   SampleFPropertyDecoder
+}
+
+// FieldName returns struct field name of property.
+func (info *SampleFPropertyInfo) FieldName() string {
+	return info.fieldName
+}
+
+// JSONName returns json field name of property.
+func (info *SampleFPropertyInfo) JSONName() string {
+	return info.jsonName
 }
 
 // SampleFJSONBuilder convert between SampleF to SampleFJSON mutually.
 type SampleFJSONBuilder struct {
-	_properties map[string]*SampleFPropertyInfo
-	A           *SampleFPropertyInfo
-	B           *SampleFPropertyInfo
+	_properties        map[string]*SampleFPropertyInfo
+	_jsonPropertyMap   map[string]*SampleFPropertyInfo
+	_structPropertyMap map[string]*SampleFPropertyInfo
+	A                  *SampleFPropertyInfo
+	B                  *SampleFPropertyInfo
 }
 
 // NewSampleFJSONBuilder make new SampleFJSONBuilder.
 func NewSampleFJSONBuilder() *SampleFJSONBuilder {
-	return &SampleFJSONBuilder{
-		_properties: map[string]*SampleFPropertyInfo{},
+	jb := &SampleFJSONBuilder{
+		_properties:        map[string]*SampleFPropertyInfo{},
+		_jsonPropertyMap:   map[string]*SampleFPropertyInfo{},
+		_structPropertyMap: map[string]*SampleFPropertyInfo{},
 		A: &SampleFPropertyInfo{
-			name: "A",
+			fieldName: "A",
+			jsonName:  "a",
 			Encoder: func(src *SampleF, dest *SampleFJSON) error {
 				if src == nil {
 					return nil
@@ -59,7 +75,8 @@ func NewSampleFJSONBuilder() *SampleFJSONBuilder {
 			},
 		},
 		B: &SampleFPropertyInfo{
-			name: "B",
+			fieldName: "B",
+			jsonName:  "b",
 			Encoder: func(src *SampleF, dest *SampleFJSON) error {
 				if src == nil {
 					return nil
@@ -76,6 +93,19 @@ func NewSampleFJSONBuilder() *SampleFJSONBuilder {
 			},
 		},
 	}
+	jb._structPropertyMap["A"] = jb.A
+	jb._jsonPropertyMap["a"] = jb.A
+	jb._structPropertyMap["B"] = jb.B
+	jb._jsonPropertyMap["b"] = jb.B
+	return jb
+}
+
+// Properties returns all properties on SampleFJSONBuilder.
+func (b *SampleFJSONBuilder) Properties() []*SampleFPropertyInfo {
+	return []*SampleFPropertyInfo{
+		b.A,
+		b.B,
+	}
 }
 
 // AddAll adds all property to SampleFJSONBuilder.
@@ -87,13 +117,62 @@ func (b *SampleFJSONBuilder) AddAll() *SampleFJSONBuilder {
 
 // Add specified property to SampleFJSONBuilder.
 func (b *SampleFJSONBuilder) Add(info *SampleFPropertyInfo) *SampleFJSONBuilder {
-	b._properties[info.name] = info
+	b._properties[info.fieldName] = info
+	return b
+}
+
+// AddByJSONNames add properties to SampleFJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *SampleFJSONBuilder) AddByJSONNames(names ...string) *SampleFJSONBuilder {
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
+	return b
+}
+
+// AddByNames add properties to SampleFJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *SampleFJSONBuilder) AddByNames(names ...string) *SampleFJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.fieldName] = info
+	}
 	return b
 }
 
 // Remove specified property to SampleFJSONBuilder.
 func (b *SampleFJSONBuilder) Remove(info *SampleFPropertyInfo) *SampleFJSONBuilder {
-	delete(b._properties, info.name)
+	delete(b._properties, info.fieldName)
+	return b
+}
+
+// RemoveByJSONNames remove properties to SampleFJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *SampleFJSONBuilder) RemoveByJSONNames(names ...string) *SampleFJSONBuilder {
+
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
+	return b
+}
+
+// RemoveByNames remove properties to SampleFJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *SampleFJSONBuilder) RemoveByNames(names ...string) *SampleFJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.fieldName)
+	}
 	return b
 }
 

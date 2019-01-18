@@ -22,9 +22,20 @@ type InnerPropertyDecoder func(src *InnerJSON, dest *Inner) error
 
 // InnerPropertyInfo stores property information.
 type InnerPropertyInfo struct {
-	name    string
-	Encoder InnerPropertyEncoder
-	Decoder InnerPropertyDecoder
+	fieldName string
+	jsonName  string
+	Encoder   InnerPropertyEncoder
+	Decoder   InnerPropertyDecoder
+}
+
+// FieldName returns struct field name of property.
+func (info *InnerPropertyInfo) FieldName() string {
+	return info.fieldName
+}
+
+// JSONName returns json field name of property.
+func (info *InnerPropertyInfo) JSONName() string {
+	return info.jsonName
 }
 
 // InnerJSONBuilder convert between Inner to InnerJSON mutually.
@@ -42,7 +53,8 @@ func NewInnerJSONBuilder() *InnerJSONBuilder {
 		_jsonPropertyMap:   map[string]*InnerPropertyInfo{},
 		_structPropertyMap: map[string]*InnerPropertyInfo{},
 		A: &InnerPropertyInfo{
-			name: "A",
+			fieldName: "A",
+			jsonName:  "a",
 			Encoder: func(src *Inner, dest *InnerJSON) error {
 				if src == nil {
 					return nil
@@ -64,6 +76,13 @@ func NewInnerJSONBuilder() *InnerJSONBuilder {
 	return jb
 }
 
+// Properties returns all properties on InnerJSONBuilder.
+func (b *InnerJSONBuilder) Properties() []*InnerPropertyInfo {
+	return []*InnerPropertyInfo{
+		b.A,
+	}
+}
+
 // AddAll adds all property to InnerJSONBuilder.
 func (b *InnerJSONBuilder) AddAll() *InnerJSONBuilder {
 	b._properties["A"] = b.A
@@ -72,7 +91,7 @@ func (b *InnerJSONBuilder) AddAll() *InnerJSONBuilder {
 
 // Add specified property to InnerJSONBuilder.
 func (b *InnerJSONBuilder) Add(info *InnerPropertyInfo) *InnerJSONBuilder {
-	b._properties[info.name] = info
+	b._properties[info.fieldName] = info
 	return b
 }
 
@@ -83,7 +102,7 @@ func (b *InnerJSONBuilder) AddByJSONNames(names ...string) *InnerJSONBuilder {
 		if info == nil {
 			continue
 		}
-		b._properties[info.name] = info
+		b._properties[info.fieldName] = info
 	}
 	return b
 }
@@ -95,14 +114,14 @@ func (b *InnerJSONBuilder) AddByNames(names ...string) *InnerJSONBuilder {
 		if info == nil {
 			continue
 		}
-		b._properties[info.name] = info
+		b._properties[info.fieldName] = info
 	}
 	return b
 }
 
 // Remove specified property to InnerJSONBuilder.
 func (b *InnerJSONBuilder) Remove(info *InnerPropertyInfo) *InnerJSONBuilder {
-	delete(b._properties, info.name)
+	delete(b._properties, info.fieldName)
 	return b
 }
 
@@ -114,7 +133,7 @@ func (b *InnerJSONBuilder) RemoveByJSONNames(names ...string) *InnerJSONBuilder 
 		if info == nil {
 			continue
 		}
-		delete(b._properties, info.name)
+		delete(b._properties, info.fieldName)
 	}
 	return b
 }
@@ -126,7 +145,7 @@ func (b *InnerJSONBuilder) RemoveByNames(names ...string) *InnerJSONBuilder {
 		if info == nil {
 			continue
 		}
-		delete(b._properties, info.name)
+		delete(b._properties, info.fieldName)
 	}
 	return b
 }
@@ -225,9 +244,20 @@ type SamplePropertyDecoder func(src *SampleJSON, dest *Sample) error
 
 // SamplePropertyInfo stores property information.
 type SamplePropertyInfo struct {
-	name    string
-	Encoder SamplePropertyEncoder
-	Decoder SamplePropertyDecoder
+	fieldName string
+	jsonName  string
+	Encoder   SamplePropertyEncoder
+	Decoder   SamplePropertyDecoder
+}
+
+// FieldName returns struct field name of property.
+func (info *SamplePropertyInfo) FieldName() string {
+	return info.fieldName
+}
+
+// JSONName returns json field name of property.
+func (info *SamplePropertyInfo) JSONName() string {
+	return info.jsonName
 }
 
 // SampleJSONBuilder convert between Sample to SampleJSON mutually.
@@ -250,7 +280,8 @@ func NewSampleJSONBuilder() *SampleJSONBuilder {
 		_jsonPropertyMap:   map[string]*SamplePropertyInfo{},
 		_structPropertyMap: map[string]*SamplePropertyInfo{},
 		A1: &SamplePropertyInfo{
-			name: "A1",
+			fieldName: "A1",
+			jsonName:  "a1",
 			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
@@ -275,7 +306,8 @@ func NewSampleJSONBuilder() *SampleJSONBuilder {
 			},
 		},
 		A2: &SamplePropertyInfo{
-			name: "A2",
+			fieldName: "A2",
+			jsonName:  "a2",
 			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
@@ -304,7 +336,8 @@ func NewSampleJSONBuilder() *SampleJSONBuilder {
 			},
 		},
 		As1: &SamplePropertyInfo{
-			name: "As1",
+			fieldName: "As1",
+			jsonName:  "as1",
 			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
@@ -338,7 +371,8 @@ func NewSampleJSONBuilder() *SampleJSONBuilder {
 			},
 		},
 		As2: &SamplePropertyInfo{
-			name: "As2",
+			fieldName: "As2",
+			jsonName:  "as2",
 			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
@@ -370,7 +404,8 @@ func NewSampleJSONBuilder() *SampleJSONBuilder {
 			},
 		},
 		As3: &SamplePropertyInfo{
-			name: "As3",
+			fieldName: "As3",
+			jsonName:  "as3",
 			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
@@ -408,7 +443,8 @@ func NewSampleJSONBuilder() *SampleJSONBuilder {
 			},
 		},
 		As4: &SamplePropertyInfo{
-			name: "As4",
+			fieldName: "As4",
+			jsonName:  "as4",
 			Encoder: func(src *Sample, dest *SampleJSON) error {
 				if src == nil {
 					return nil
@@ -459,6 +495,18 @@ func NewSampleJSONBuilder() *SampleJSONBuilder {
 	return jb
 }
 
+// Properties returns all properties on SampleJSONBuilder.
+func (b *SampleJSONBuilder) Properties() []*SamplePropertyInfo {
+	return []*SamplePropertyInfo{
+		b.A1,
+		b.A2,
+		b.As1,
+		b.As2,
+		b.As3,
+		b.As4,
+	}
+}
+
 // AddAll adds all property to SampleJSONBuilder.
 func (b *SampleJSONBuilder) AddAll() *SampleJSONBuilder {
 	b._properties["A1"] = b.A1
@@ -472,7 +520,7 @@ func (b *SampleJSONBuilder) AddAll() *SampleJSONBuilder {
 
 // Add specified property to SampleJSONBuilder.
 func (b *SampleJSONBuilder) Add(info *SamplePropertyInfo) *SampleJSONBuilder {
-	b._properties[info.name] = info
+	b._properties[info.fieldName] = info
 	return b
 }
 
@@ -483,7 +531,7 @@ func (b *SampleJSONBuilder) AddByJSONNames(names ...string) *SampleJSONBuilder {
 		if info == nil {
 			continue
 		}
-		b._properties[info.name] = info
+		b._properties[info.fieldName] = info
 	}
 	return b
 }
@@ -495,14 +543,14 @@ func (b *SampleJSONBuilder) AddByNames(names ...string) *SampleJSONBuilder {
 		if info == nil {
 			continue
 		}
-		b._properties[info.name] = info
+		b._properties[info.fieldName] = info
 	}
 	return b
 }
 
 // Remove specified property to SampleJSONBuilder.
 func (b *SampleJSONBuilder) Remove(info *SamplePropertyInfo) *SampleJSONBuilder {
-	delete(b._properties, info.name)
+	delete(b._properties, info.fieldName)
 	return b
 }
 
@@ -514,7 +562,7 @@ func (b *SampleJSONBuilder) RemoveByJSONNames(names ...string) *SampleJSONBuilde
 		if info == nil {
 			continue
 		}
-		delete(b._properties, info.name)
+		delete(b._properties, info.fieldName)
 	}
 	return b
 }
@@ -526,7 +574,7 @@ func (b *SampleJSONBuilder) RemoveByNames(names ...string) *SampleJSONBuilder {
 		if info == nil {
 			continue
 		}
-		delete(b._properties, info.name)
+		delete(b._properties, info.fieldName)
 	}
 	return b
 }

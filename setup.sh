@@ -20,3 +20,4 @@ go run cmd/jwg/main.go -output misc/fixture/k/model_json.go misc/fixture/k
 go run cmd/jwg/main.go -type Sample -output misc/fixture/l/model_json.go -transcripttag swagger,includes misc/fixture/l
 go run cmd/jwg/main.go -type Sample -output misc/fixture/m/model_json.go misc/fixture/m
 go run cmd/jwg/main.go -type Sample -output misc/fixture/n/model_json.go -noOmitempty misc/fixture/n
+go run cmd/jwg/main.go -type Sample -output misc/fixture/t/model_json.go -noOmitemptyFieldType=bool,int misc/fixture/t
