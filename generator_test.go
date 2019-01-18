@@ -55,71 +55,98 @@ func TestGeneratorParsePackageFiles(t *testing.T) {
 
 func TestGeneratorGenerate(t *testing.T) {
 
-	testCase := []string{"a", "b", "c", "g", "h", "l", "n", "t"}
-	for _, postFix := range testCase {
-		p := &genbase.Parser{}
-		pInfo, err := p.ParsePackageDir("./misc/fixture/" + postFix)
-		if err != nil {
-			t.Log(err)
-			t.Fail()
-		}
-		var args []string
-		var typeNames []string
-		var transcriptTags []string
-		var noOmitempty bool
-		var noOmitemptyFieldTypes []string
-		switch postFix {
-		case "g":
-			args = []string{"-type", "Sample,Inner", "-output", "misc/fixture/" + postFix + "/model_json.go", "misc/fixture/" + postFix}
-			typeNames = []string{"Sample", "Inner"}
-		case "l":
-			args = []string{"-type", "Sample", "-output", "misc/fixture/" + postFix + "/model_json.go", "-transcripttag", "swagger,includes", "misc/fixture/" + postFix}
-			typeNames = []string{"Sample"}
-			transcriptTags = []string{"swagger", "includes"}
-		case "n":
-			args = []string{"-type", "Sample", "-output", "misc/fixture/" + postFix + "/model_json.go", "-noOmitempty", "misc/fixture/" + postFix}
-			typeNames = []string{"Sample"}
-			noOmitempty = true
-		case "t":
-			args = []string{"-type", "Sample", "-output", "misc/fixture/" + postFix + "/model_json.go", "-noOmitemptyFieldType=bool,int", "misc/fixture/" + postFix}
-			typeNames = []string{"Sample"}
-			noOmitemptyFieldTypes = []string{"bool", "int"}
-		default:
-			args = []string{"-type", "Sample", "-output", "misc/fixture/" + postFix + "/model_json.go", "misc/fixture/" + postFix}
-			typeNames = []string{"Sample"}
-		}
+	specs := []struct {
+		CaseName              string
+		Args                  []string
+		TypeNames             []string
+		TranscriptTags        []string
+		NoOmitempty           bool
+		NoOmitemptyFieldTypes []string
+	}{
+		{
+			CaseName: "a",
+		},
+		{
+			CaseName: "b",
+		},
+		{
+			CaseName: "c",
+		},
+		{
+			CaseName:  "g",
+			Args:      []string{"-type", "Sample,Inner", "-output", "misc/fixture/g/model_json.go", "misc/fixture/g"},
+			TypeNames: []string{"Sample", "Inner"},
+		},
+		{
+			CaseName: "h",
+		},
+		{
+			CaseName:       "l",
+			Args:           []string{"-type", "Sample", "-output", "misc/fixture/l/model_json.go", "-transcripttag", "swagger,includes", "misc/fixture/l"},
+			TypeNames:      []string{"Sample"},
+			TranscriptTags: []string{"swagger", "includes"},
+		},
+		{
+			CaseName:    "n",
+			Args:        []string{"-type", "Sample", "-output", "misc/fixture/n/model_json.go", "-noOmitempty", "misc/fixture/n"},
+			TypeNames:   []string{"Sample"},
+			NoOmitempty: true,
+		},
+		{
+			CaseName:              "t",
+			Args:                  []string{"-type", "Sample", "-output", "misc/fixture/t/model_json.go", "-noOmitemptyFieldType=bool,int", "misc/fixture/t"},
+			TypeNames:             []string{"Sample"},
+			NoOmitemptyFieldTypes: []string{"bool", "int"},
+		},
+	}
 
-		bu, err := Parse(pInfo, pInfo.CollectTypeInfos(typeNames), &ParseOptions{
-			TranscriptTagNames:    transcriptTags,
-			NoOmitempty:           noOmitempty,
-			NoOmitemptyFieldTypes: noOmitemptyFieldTypes,
-		})
-		if err != nil {
-			t.Log(err)
-			t.Fail()
-		}
-		src, err := bu.Emit(&args)
-		if err != nil {
-			t.Log(err)
-			t.Fail()
-		}
-		expected, err := ioutil.ReadFile("./misc/fixture/" + postFix + "/model_json.go")
-		if err != nil {
-			t.Log(err)
-			t.Fail()
-		}
-		if string(src) != string(expected) {
-			diff := difflib.UnifiedDiff{
-				A:       difflib.SplitLines(string(expected)),
-				B:       difflib.SplitLines(string(src)),
-				Context: 5,
-			}
-			d, err := difflib.GetUnifiedDiffString(diff)
+	for _, spec := range specs {
+		t.Run(spec.CaseName, func(t *testing.T) {
+			p := &genbase.Parser{}
+			pInfo, err := p.ParsePackageDir("./misc/fixture/" + spec.CaseName)
 			if err != nil {
-				t.Fatal(err)
+				t.Log(err)
+				t.Fail()
 			}
-			t.Fatal(d)
-		}
+			if len(spec.Args) == 0 {
+				spec.Args = []string{"-type", "Sample", "-output", "misc/fixture/" + spec.CaseName + "/model_json.go", "misc/fixture/" + spec.CaseName}
+			}
+			if len(spec.TypeNames) == 0 {
+				spec.TypeNames = []string{"Sample"}
+			}
+
+			bu, err := Parse(pInfo, pInfo.CollectTypeInfos(spec.TypeNames), &ParseOptions{
+				TranscriptTagNames:    spec.TranscriptTags,
+				NoOmitempty:           spec.NoOmitempty,
+				NoOmitemptyFieldTypes: spec.NoOmitemptyFieldTypes,
+			})
+			if err != nil {
+				t.Log(err)
+				t.Fail()
+			}
+			src, err := bu.Emit(&spec.Args)
+			if err != nil {
+				t.Log(err)
+				t.Fail()
+			}
+			expected, err := ioutil.ReadFile("./misc/fixture/" + spec.CaseName + "/model_json.go")
+			if err != nil {
+				t.Log(err)
+				t.Fail()
+			}
+			if string(src) != string(expected) {
+				diff := difflib.UnifiedDiff{
+					A:       difflib.SplitLines(string(expected)),
+					B:       difflib.SplitLines(string(src)),
+					Context: 5,
+				}
+				d, err := difflib.GetUnifiedDiffString(diff)
+				if err != nil {
+					t.Fatal(err)
+				}
+				t.Fatal(d)
+			}
+		})
 	}
 }
 
