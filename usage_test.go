@@ -94,7 +94,7 @@ func TestWithRemove(t *testing.T) {
 
 	builder := b.NewSampleJSONBuilder()
 	builder.AddAll()
-	builder.Remove(builder.A)
+	builder.Remove(builder.A, builder.D)
 	json, err := builder.Marshal(src)
 
 	if err != nil {
@@ -102,8 +102,8 @@ func TestWithRemove(t *testing.T) {
 		t.Fail()
 	}
 
-	// A was removed. C was omitted. E was ignored.
-	if string(json) != `{"b":"B","d":"1"}` {
+	// A, D was removed. C was omitted. E was ignored.
+	if string(json) != `{"b":"B"}` {
 		t.Log("json is not expected, actual", string(json))
 		t.Fail()
 	}
@@ -123,7 +123,7 @@ func TestWithRemoveByNames(t *testing.T) {
 		t.Fail()
 	}
 
-	// A was removed. C was omitted. E was ignored.
+	// A, D was removed. C was omitted. E was ignored.
 	if string(json) != `{"b":"B"}` {
 		t.Log("json is not expected, actual", string(json))
 		t.Fail()
@@ -144,7 +144,7 @@ func TestWithRemoveByJSONNames(t *testing.T) {
 		t.Fail()
 	}
 
-	// A was removed. C was omitted. E was ignored.
+	// A, D was removed. C was omitted. E was ignored.
 	if string(json) != `{"b":"B"}` {
 		t.Log("json is not expected, actual", string(json))
 		t.Fail()
@@ -155,7 +155,7 @@ func TestWithAdd(t *testing.T) {
 	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
 
 	builder := b.NewSampleJSONBuilder()
-	builder.Add(builder.D)
+	builder.Add(builder.D, builder.A)
 	json, err := builder.Marshal(src)
 
 	if err != nil {
@@ -163,7 +163,7 @@ func TestWithAdd(t *testing.T) {
 		t.Fail()
 	}
 
-	if string(json) != `{"d":"1"}` {
+	if string(json) != `{"foo!":"A","d":"1"}` {
 		t.Log("json is not expected, actual", string(json))
 		t.Fail()
 	}
