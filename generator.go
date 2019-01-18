@@ -300,6 +300,8 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	g.Printf("// %[1]sJSONBuilder convert between %[1]s to %[1]sJSON mutually.\n", st.Name())
 	g.Printf("type %sJSONBuilder struct {\n", st.Name())
 	g.Printf("_properties map[string]*%sPropertyInfo\n", st.Name())
+	g.Printf("_jsonPropertyMap map[string]*%sPropertyInfo\n", st.Name())
+	g.Printf("_structPropertyMap map[string]*%sPropertyInfo\n", st.Name())
 	for _, field := range st.Fields {
 		if field.Tag.Ignore {
 			continue
@@ -311,8 +313,10 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 	// generate new json builder factory function
 	g.Printf("// New%[1]sJSONBuilder make new %[1]sJSONBuilder.\n", st.Name())
 	g.Printf("func New%[1]sJSONBuilder() *%[1]sJSONBuilder {\n", st.Name())
-	g.Printf("return &%sJSONBuilder{\n", st.Name())
+	g.Printf("jb := &%sJSONBuilder{\n", st.Name())
 	g.Printf("_properties: map[string]*%sPropertyInfo{},\n", st.Name())
+	g.Printf("_jsonPropertyMap: map[string]*%sPropertyInfo{},\n", st.Name())
+	g.Printf("_structPropertyMap: map[string]*%sPropertyInfo{},\n", st.Name())
 	for _, field := range st.Fields {
 		if field.Tag.Ignore {
 			continue
@@ -658,6 +662,14 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 		}
 	}
 	g.Printf("}\n")
+	for _, field := range st.Fields {
+		if field.Tag.Ignore {
+			continue
+		}
+		g.Printf("jb._structPropertyMap[\"%[1]s\"] = jb.%[1]s\n", field.Name)
+		g.Printf("jb._jsonPropertyMap[\"%[2]s\"] = jb.%[1]s\n", field.Name, field.Tag.Name)
+	}
+	g.Printf("return jb")
 	g.Printf("}\n\n")
 
 	// generate AddAll method
@@ -684,9 +696,56 @@ func (st *BuildStruct) emit(g *genbase.Generator) error {
 				return b
 			}
 
+			// AddByJSONNames add properties to %[1]sJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+			func (b *%[1]sJSONBuilder) AddByJSONNames(names ...string) *%[1]sJSONBuilder {
+				for _, name := range names {
+					info := b._jsonPropertyMap[name]
+					if info == nil {
+						continue
+					}
+					b._properties[info.name] = info
+				}
+				return b
+			}
+			// AddByNames add properties to %[1]sJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+			func (b *%[1]sJSONBuilder) AddByNames(names ...string) *%[1]sJSONBuilder {
+				for _, name := range names {
+					info := b._structPropertyMap[name]
+					if info == nil {
+						continue
+					}
+					b._properties[info.name] = info
+				}
+				return b
+			}
+
 			// Remove specified property to %[1]sJSONBuilder.
 			func (b *%[1]sJSONBuilder) Remove(info *%[1]sPropertyInfo) *%[1]sJSONBuilder {
 				delete(b._properties, info.name)
+				return b
+			}
+
+			// RemoveByJSONNames remove properties to %[1]sJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+			func (b *%[1]sJSONBuilder) RemoveByJSONNames(names ...string) *%[1]sJSONBuilder {
+				
+				for _, name := range names {
+					info := b._jsonPropertyMap[name]
+					if info == nil {
+						continue
+					}
+					delete(b._properties, info.name)
+				}
+				return b
+			}
+			// RemoveByNames remove properties to %[1]sJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+			func (b *%[1]sJSONBuilder) RemoveByNames(names ...string) *%[1]sJSONBuilder {
+				for _, name := range names {
+					info := b._structPropertyMap[name]
+					if info == nil {
+						continue
+					}
+					delete(b._properties, info.name)
+				}
 				return b
 			}
 
