@@ -53,6 +53,42 @@ func TestBasicUsage2(t *testing.T) {
 	}
 }
 
+func TestBasicUsage3(t *testing.T) {
+	src := &a.Sample{"Foo!"}
+
+	builder := a.NewSampleJSONBuilder()
+	builder.AddByJSONNames("foo")
+	json, err := builder.Marshal(src)
+
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	if string(json) != `{"foo":"Foo!"}` {
+		t.Log("json is not expected, actual", string(json))
+		t.Fail()
+	}
+}
+
+func TestBasicUsage4(t *testing.T) {
+	src := &a.Sample{"Foo!"}
+
+	builder := a.NewSampleJSONBuilder()
+	builder.AddByNames("Foo")
+	json, err := builder.Marshal(src)
+
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	if string(json) != `{"foo":"Foo!"}` {
+		t.Log("json is not expected, actual", string(json))
+		t.Fail()
+	}
+}
+
 func TestWithRemove(t *testing.T) {
 	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
 
@@ -73,6 +109,48 @@ func TestWithRemove(t *testing.T) {
 	}
 }
 
+func TestWithRemoveByNames(t *testing.T) {
+	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
+
+	builder := b.NewSampleJSONBuilder()
+	builder.AddAll()
+	builder.RemoveByNames() // ignore empty
+	builder.RemoveByNames("A", "D", "hoge") // ignore non-exist property
+	json, err := builder.Marshal(src)
+
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	// A was removed. C was omitted. E was ignored.
+	if string(json) != `{"b":"B"}` {
+		t.Log("json is not expected, actual", string(json))
+		t.Fail()
+	}
+}
+
+func TestWithRemoveByJSONNames(t *testing.T) {
+	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
+
+	builder := b.NewSampleJSONBuilder()
+	builder.AddAll()
+	builder.RemoveByJSONNames() // ignore empty
+	builder.RemoveByJSONNames("foo!", "d", "fuga") // ignore non-exist property
+	json, err := builder.Marshal(src)
+
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	// A was removed. C was omitted. E was ignored.
+	if string(json) != `{"b":"B"}` {
+		t.Log("json is not expected, actual", string(json))
+		t.Fail()
+	}
+}
+
 func TestWithAdd(t *testing.T) {
 	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
 
@@ -86,6 +164,44 @@ func TestWithAdd(t *testing.T) {
 	}
 
 	if string(json) != `{"d":"1"}` {
+		t.Log("json is not expected, actual", string(json))
+		t.Fail()
+	}
+}
+
+func TestWithAddByJSONNames(t *testing.T) {
+	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
+
+	builder := b.NewSampleJSONBuilder()
+	builder.AddByJSONNames() // ignore empty
+	builder.AddByJSONNames("b", "d", "hoge") // ignore non-exist property
+	json, err := builder.Marshal(src)
+
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	if string(json) != `{"b":"B","d":"1"}` {
+		t.Log("json is not expected, actual", string(json))
+		t.Fail()
+	}
+}
+
+func TestWithAddByNames(t *testing.T) {
+	src := &b.Sample{"A", "B", 0, 1, "E", 0, nil}
+
+	builder := b.NewSampleJSONBuilder()
+	builder.AddByNames() // ignore empty
+	builder.AddByNames("B", "D", "hoge") // ignore non-exist property
+	json, err := builder.Marshal(src)
+
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	if string(json) != `{"b":"B","d":"1"}` {
 		t.Log("json is not expected, actual", string(json))
 		t.Fail()
 	}

@@ -29,14 +29,18 @@ type InnerPropertyInfo struct {
 
 // InnerJSONBuilder convert between Inner to InnerJSON mutually.
 type InnerJSONBuilder struct {
-	_properties map[string]*InnerPropertyInfo
-	A           *InnerPropertyInfo
+	_properties        map[string]*InnerPropertyInfo
+	_jsonPropertyMap   map[string]*InnerPropertyInfo
+	_structPropertyMap map[string]*InnerPropertyInfo
+	A                  *InnerPropertyInfo
 }
 
 // NewInnerJSONBuilder make new InnerJSONBuilder.
 func NewInnerJSONBuilder() *InnerJSONBuilder {
-	return &InnerJSONBuilder{
-		_properties: map[string]*InnerPropertyInfo{},
+	jb := &InnerJSONBuilder{
+		_properties:        map[string]*InnerPropertyInfo{},
+		_jsonPropertyMap:   map[string]*InnerPropertyInfo{},
+		_structPropertyMap: map[string]*InnerPropertyInfo{},
 		A: &InnerPropertyInfo{
 			name: "A",
 			Encoder: func(src *Inner, dest *InnerJSON) error {
@@ -55,6 +59,9 @@ func NewInnerJSONBuilder() *InnerJSONBuilder {
 			},
 		},
 	}
+	jb._structPropertyMap["A"] = jb.A
+	jb._jsonPropertyMap["a"] = jb.A
+	return jb
 }
 
 // AddAll adds all property to InnerJSONBuilder.
@@ -69,9 +76,58 @@ func (b *InnerJSONBuilder) Add(info *InnerPropertyInfo) *InnerJSONBuilder {
 	return b
 }
 
+// AddByJSONNames add properties to InnerJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *InnerJSONBuilder) AddByJSONNames(names ...string) *InnerJSONBuilder {
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.name] = info
+	}
+	return b
+}
+
+// AddByNames add properties to InnerJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *InnerJSONBuilder) AddByNames(names ...string) *InnerJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.name] = info
+	}
+	return b
+}
+
 // Remove specified property to InnerJSONBuilder.
 func (b *InnerJSONBuilder) Remove(info *InnerPropertyInfo) *InnerJSONBuilder {
 	delete(b._properties, info.name)
+	return b
+}
+
+// RemoveByJSONNames remove properties to InnerJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *InnerJSONBuilder) RemoveByJSONNames(names ...string) *InnerJSONBuilder {
+
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.name)
+	}
+	return b
+}
+
+// RemoveByNames remove properties to InnerJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *InnerJSONBuilder) RemoveByNames(names ...string) *InnerJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.name)
+	}
 	return b
 }
 
@@ -176,19 +232,23 @@ type SamplePropertyInfo struct {
 
 // SampleJSONBuilder convert between Sample to SampleJSON mutually.
 type SampleJSONBuilder struct {
-	_properties map[string]*SamplePropertyInfo
-	A1          *SamplePropertyInfo
-	A2          *SamplePropertyInfo
-	As1         *SamplePropertyInfo
-	As2         *SamplePropertyInfo
-	As3         *SamplePropertyInfo
-	As4         *SamplePropertyInfo
+	_properties        map[string]*SamplePropertyInfo
+	_jsonPropertyMap   map[string]*SamplePropertyInfo
+	_structPropertyMap map[string]*SamplePropertyInfo
+	A1                 *SamplePropertyInfo
+	A2                 *SamplePropertyInfo
+	As1                *SamplePropertyInfo
+	As2                *SamplePropertyInfo
+	As3                *SamplePropertyInfo
+	As4                *SamplePropertyInfo
 }
 
 // NewSampleJSONBuilder make new SampleJSONBuilder.
 func NewSampleJSONBuilder() *SampleJSONBuilder {
-	return &SampleJSONBuilder{
-		_properties: map[string]*SamplePropertyInfo{},
+	jb := &SampleJSONBuilder{
+		_properties:        map[string]*SamplePropertyInfo{},
+		_jsonPropertyMap:   map[string]*SamplePropertyInfo{},
+		_structPropertyMap: map[string]*SamplePropertyInfo{},
 		A1: &SamplePropertyInfo{
 			name: "A1",
 			Encoder: func(src *Sample, dest *SampleJSON) error {
@@ -384,6 +444,19 @@ func NewSampleJSONBuilder() *SampleJSONBuilder {
 			},
 		},
 	}
+	jb._structPropertyMap["A1"] = jb.A1
+	jb._jsonPropertyMap["a1"] = jb.A1
+	jb._structPropertyMap["A2"] = jb.A2
+	jb._jsonPropertyMap["a2"] = jb.A2
+	jb._structPropertyMap["As1"] = jb.As1
+	jb._jsonPropertyMap["as1"] = jb.As1
+	jb._structPropertyMap["As2"] = jb.As2
+	jb._jsonPropertyMap["as2"] = jb.As2
+	jb._structPropertyMap["As3"] = jb.As3
+	jb._jsonPropertyMap["as3"] = jb.As3
+	jb._structPropertyMap["As4"] = jb.As4
+	jb._jsonPropertyMap["as4"] = jb.As4
+	return jb
 }
 
 // AddAll adds all property to SampleJSONBuilder.
@@ -403,9 +476,58 @@ func (b *SampleJSONBuilder) Add(info *SamplePropertyInfo) *SampleJSONBuilder {
 	return b
 }
 
+// AddByJSONNames add properties to SampleJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *SampleJSONBuilder) AddByJSONNames(names ...string) *SampleJSONBuilder {
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.name] = info
+	}
+	return b
+}
+
+// AddByNames add properties to SampleJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *SampleJSONBuilder) AddByNames(names ...string) *SampleJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		b._properties[info.name] = info
+	}
+	return b
+}
+
 // Remove specified property to SampleJSONBuilder.
 func (b *SampleJSONBuilder) Remove(info *SamplePropertyInfo) *SampleJSONBuilder {
 	delete(b._properties, info.name)
+	return b
+}
+
+// RemoveByJSONNames remove properties to SampleJSONBuilder by JSON property name. if name is not in the builder, it will ignore.
+func (b *SampleJSONBuilder) RemoveByJSONNames(names ...string) *SampleJSONBuilder {
+
+	for _, name := range names {
+		info := b._jsonPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.name)
+	}
+	return b
+}
+
+// RemoveByNames remove properties to SampleJSONBuilder by struct property name. if name is not in the builder, it will ignore.
+func (b *SampleJSONBuilder) RemoveByNames(names ...string) *SampleJSONBuilder {
+	for _, name := range names {
+		info := b._structPropertyMap[name]
+		if info == nil {
+			continue
+		}
+		delete(b._properties, info.name)
+	}
 	return b
 }
 
